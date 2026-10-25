@@ -64,3 +64,11 @@ it('the Flux section says where a failed run-job leaves its error', () => {
     const flux = section(readFileSync('README.md', 'utf8'), 'Deploy with Flux');
     expect(flux).toMatch(/run-job[^\n]*prints only[^\n]*DATABASE_URL/u);
 });
+
+it('the kind commands run as printed in a shell', () => {
+    const kind = section(readFileSync('README.md', 'utf8'), 'Try it on kind');
+    const commands = /```bash\n([\s\S]*?)```/u.exec(kind)![1]!;
+    // An unquoted <placeholder> is shell redirection, so the command would fail.
+    expect(commands).not.toMatch(/(?<!['"])<[a-z][^>]*>/u);
+    expect(commands).toContain('--from-literal=ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY"');
+});
