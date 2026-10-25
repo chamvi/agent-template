@@ -14,7 +14,7 @@ Build with `npm run build`, then start with `npm run start` using the process en
 | `ANTHROPIC_API_KEY` | Required by the example's provider; a missing key prevents startup |
 | `CHAMVI_TOKENS` | JSON token list; replace the public dev sample, scope grants narrowly |
 | `DATABASE_URL` | PostgreSQL durable storage; unset is memory lost on restart |
-| `CHAMVI_MIGRATE` | Run migrations during startup when enabled; alternatively use `chamvi migrate` |
+| `CHAMVI_MIGRATE` | Migrations run at startup by default when `DATABASE_URL` is set; `false` applies them only through `chamvi migrate` |
 | `CHAMVI_PUBLIC_URL` | Public origin, without the app base path |
 | `CHAMVI_BASE_PATH` | Shared HTTP prefix, such as `/api` |
 | `CHAMVI_SCHEDULER` | In-process cron firing, disable for external CronJobs |
