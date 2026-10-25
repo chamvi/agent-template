@@ -13,7 +13,8 @@ gh repo create <owner>/<name> --template chamvi/agent-template --private --clone
 GitHub does not substitute names. In your new checkout:
 
 - Change `package.json`'s `name` from `agent-template`.
-- In `deploy/flux` and `deploy/kind/values.yaml`, replace the app/release name `agent-template`, the namespace `agents` and the image `ghcr.io/chamvi/agent-template` (with `ghcr.io/<owner>/<name>`) everywhere, including the `$imagepolicy` markers and the Secret name `agent-template-env`. `test/unit/deploy.spec.ts` fails while the names disagree.
+- In `deploy/flux` and `deploy/kind/values.yaml`, replace the app/release name `agent-template`, the namespace `agents` and the image `ghcr.io/chamvi/agent-template` (with `ghcr.io/<owner>/<name>`) everywhere, including the `$imagepolicy` markers and the Secret name `agent-template-env`. Do the same in README.md's "Try it on kind" block (image, Secret, release and Service names, namespace). `test/unit/deploy.spec.ts` and `test/unit/readme.spec.ts` fail while the names disagree.
+- `package-lock.json` keeps the old root name until `npm install --package-lock-only` refreshes it; `npm ci` accepts either.
 - Review and replace `LICENSE` and `NOTICE` for your own project.
 - Find what is left:
 
@@ -161,7 +162,7 @@ helm install agent-template oci://ghcr.io/chamvi/helm/agent-app --version '>=0.1
 kubectl -n agents port-forward svc/agent-template-agent-app 8080:80
 ```
 
-Then `curl localhost:8080/readyz` answers `200` and the dashboard is at `http://localhost:8080/ui/`. The chart names its objects `<release>-agent-app`. Without `DATABASE_URL` in the Secret, runs live in memory and are gone with the pod.
+Then `curl localhost:8080/readyz` answers `200` and the dashboard is at `http://localhost:8080/ui/`. The chart names its objects `<release>-agent-app`, unless the release name already contains `agent-app`, in which case it uses the release name alone (`kubectl -n agents get svc` shows it). Without `DATABASE_URL` in the Secret, runs live in memory and are gone with the pod.
 
 ## Deploy with Flux
 
@@ -178,9 +179,11 @@ Then `curl localhost:8080/readyz` answers `200` and the dashboard is at `http://
 
 Create the Secret `agent-template-env` out of band (SOPS or External Secrets, never committed in plain text); it holds `ANTHROPIC_API_KEY`, `CHAMVI_TOKENS` and `DATABASE_URL`. Copy `image-automation.yaml` into the fleet repository Flux watches (its `GitRepository flux-system`), next to the release: the `ImagePolicy` picks the newest `main-` tag by its timestamp and the automation rewrites the release's `$imagepolicy` markers. For release images switch the policy to `semver` (commented in the file).
 
+Before the first apply, replace two placeholders: `release.yaml`'s image tag `main-0000000-0` (it never exists, so the first install would sit in `ImagePullBackOff`) with a pushed tag, such as the `main-<sha7>-<time>` tag of the last CI image job or a release tag, and the `ImageUpdateAutomation`'s `spec.update.path` `./clusters/<cluster>` with the fleet directory that holds `release.yaml`. Afterwards the automation rewrites the tag.
+
 Set `CHAMVI_PUBLIC_URL` to the public origin only (with the ingress enabled and no value, the chart derives it from the ingress host); the chart's `basePath` value sets `CHAMVI_BASE_PATH`, and approval links get it once. The GitHub channel then listens at `<basePath>/channels/github`.
 
-Pick one scheduler: the app fires its cron subscriptions, or the chart's `cronJobs` value runs `chamvi run-job example 'cron:0 8 * * 1'` as a Kubernetes CronJob and sets `CHAMVI_SCHEDULER=false` on the app (commented in `release.yaml`). Jobs and the app must share one database.
+Pick one scheduler: the app fires its cron subscriptions, or the chart's `cronJobs` value runs `chamvi run-job example 'cron:0 8 * * 1'` as a Kubernetes CronJob and sets `CHAMVI_SCHEDULER=false` on the app (commented in `release.yaml`). Jobs and the app must share one database. A failed `chamvi run-job` prints only `<agent>: failed (run <id>)` and exits 1; the run's error stays on the stored run, readable in the dashboard or `GET /runs/<id>` only when the Secret carries `DATABASE_URL` (in memory it is gone with the job's pod).
 
 The environment variables are listed in the [app reference](https://chamvi.dev/reference/app#environment). A missing provider key stops `chamvi start` with exit code 2, so `/readyz` never turns green.
 

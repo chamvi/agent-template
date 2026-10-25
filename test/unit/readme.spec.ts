@@ -29,3 +29,38 @@ it('README shows how to install deploy/kind/values.yaml on a kind cluster', () =
     }
     expect(readme).toMatch(/helm install \S+ oci:\/\/ghcr\.io\/chamvi\/helm\/agent-app [^\n]*\\\n[^\n]*-f deploy\/kind\/values\.yaml/);
 });
+
+const section = (readme: string, heading: string) => readme.split(`\n## ${heading}\n`)[1]!.split('\n## ')[0]!;
+
+it('the rename checklist names every file and spec that pins the names', () => {
+    const checklist = section(readFileSync('README.md', 'utf8'), 'Use this template');
+    expect(checklist).toContain('README.md');
+    expect(checklist).toContain('test/unit/deploy.spec.ts');
+    expect(checklist).toContain('test/unit/readme.spec.ts');
+    expect(checklist).toContain('npm install --package-lock-only');
+});
+
+it('the Flux section says to replace the placeholders before the first apply', () => {
+    const flux = section(readFileSync('README.md', 'utf8'), 'Deploy with Flux');
+    const release = parseDocument(readFileSync('deploy/flux/release.yaml', 'utf8')).toJSON() as {
+        spec: { values: { image: { tag: string } } };
+    };
+    expect(flux).toContain(`\`${release.spec.values.image.tag}\``);
+    expect(readFileSync('deploy/flux/image-automation.yaml', 'utf8')).toContain('path: ./clusters/<cluster>');
+    expect(flux).toContain('`spec.update.path`');
+    expect(flux).toContain('`./clusters/<cluster>`');
+});
+
+it('the kind section names the Service the way the chart does', () => {
+    // agent-app's fullname is the release name alone when it already contains "agent-app".
+    const kind = section(readFileSync('README.md', 'utf8'), 'Try it on kind');
+    const release = /helm install (\S+) oci:/u.exec(kind)![1]!;
+    const service = release.includes('agent-app') ? release : `${release}-agent-app`;
+    expect(kind).toContain(`port-forward svc/${service} `);
+    expect(kind).toContain('unless the release name already contains `agent-app`');
+});
+
+it('the Flux section says where a failed run-job leaves its error', () => {
+    const flux = section(readFileSync('README.md', 'utf8'), 'Deploy with Flux');
+    expect(flux).toMatch(/run-job[^\n]*prints only[^\n]*DATABASE_URL/u);
+});

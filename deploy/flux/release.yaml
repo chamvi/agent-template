@@ -12,6 +12,7 @@ spec:
     values:
         image:
             repository: ghcr.io/chamvi/agent-template # {"$imagepolicy": "flux-system:agent-template:name"}
+            # Placeholder: set a pushed tag before the first apply; the image automation rewrites it afterwards.
             tag: main-0000000-0 # {"$imagepolicy": "flux-system:agent-template:tag"}
         # Private application image only:
         # imagePullSecrets: [{ name: registry }]
@@ -27,6 +28,7 @@ spec:
                 secretName: ''
         # Fire cron subscriptions as Kubernetes CronJobs instead of in the app
         # (the chart then sets CHAMVI_SCHEDULER=false on the Deployment):
+        # A failed job's error is readable afterwards only with DATABASE_URL in the Secret.
         # cronJobs:
         #     - name: example-weekly
         #       schedule: '0 8 * * 1'
