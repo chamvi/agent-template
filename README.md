@@ -186,7 +186,7 @@ The environment variables are listed in the [app reference](https://chamvi.dev/r
 
 ## Images are private by default
 
-The first push of `ghcr.io/<owner>/<repo>` creates a private package. Either make it public in the package settings, or give Flux credentials for scanning (`ImageRepository.spec.secretRef`) and the pods a pull Secret (the chart's `imagePullSecrets` value); both are commented in `deploy/flux`. The `ghcr.io/chamvi/*` images and the chart need none.
+The first push of `ghcr.io/<owner>/<repo>` creates a private package. Either make it public in the package settings, or give Flux credentials for scanning (`ImageRepository.spec.secretRef`) and the pods a pull Secret (the chart's `imagePullSecrets` value); both are commented in `deploy/flux`. The chart needs none. If `docker build` fails on the `ghcr.io/chamvi/node:24` line with `401 Unauthorized`, that base image is not public yet: run `docker login ghcr.io` (a token with `read:packages`) first; the CI `docker` job logs in with the workflow token.
 
 ## License
 

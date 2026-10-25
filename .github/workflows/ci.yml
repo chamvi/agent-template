@@ -47,8 +47,17 @@ jobs:
     docker:
         name: Docker smoke
         runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: read
         steps:
             - uses: actions/checkout@v7
+            # ghcr.io/chamvi/node may be private; a read-only login pulls it either way.
+            - uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
             - run: docker build -t app:ci .
             # Read-only root, writable /tmp, uid 1000, /readyz and /ui/ green, exit code 0 on docker stop.
             - run: sh scripts/image-smoke.sh app:ci 3000
