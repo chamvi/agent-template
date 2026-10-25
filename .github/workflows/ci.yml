@@ -25,6 +25,8 @@ jobs:
                 node: [22, 24]
         steps:
             - uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
             - uses: actions/setup-node@v7
               with:
                   node-version: ${{ matrix.node }}
@@ -39,6 +41,8 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
             - name: actionlint
               run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12 -color
             - name: shellcheck
@@ -49,6 +53,8 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
             - run: docker build -t app:ci .
             # Read-only root, writable /tmp, uid 1000, /readyz and /ui/ green, exit code 0 on docker stop.
             - run: sh scripts/image-smoke.sh app:ci 3000
@@ -63,6 +69,8 @@ jobs:
             CHART_RANGE: '>=0.1.0 <0.2.0'
         steps:
             - uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
             - name: Install kubeconform
               run: |
                   cd "$RUNNER_TEMP"
@@ -106,6 +114,8 @@ jobs:
             packages: write
         steps:
             - uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
             # scripts/image-tags.sh is the one source of tags: main-<sha7>-<commit ts> on main,
             # <semver> on a v* tag. Any other ref makes it exit 1, which fails the job
             # (bash runs with -e) instead of pushing an unexpected tag.
