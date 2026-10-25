@@ -1,0 +1,56 @@
+# Copy to the fleet repository watched by GitRepository flux-system.
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+    name: agent-template
+    namespace: flux-system
+spec:
+    image: ghcr.io/chamvi/agent-template
+    interval: 5m
+    # Private images require scanning credentials too:
+    # secretRef:
+    #     name: registry
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+    name: agent-template
+    namespace: flux-system
+spec:
+    imageRepositoryRef:
+        name: agent-template
+    filterTags:
+        pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)$'
+        extract: '$ts'
+    policy:
+        numerical:
+            order: asc
+    # Releases: remove filterTags and replace policy with:
+    # policy:
+    #     semver:
+    #         range: '>=1.0.0'
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageUpdateAutomation
+metadata:
+    name: agents
+    namespace: flux-system
+spec:
+    interval: 30m
+    sourceRef:
+        kind: GitRepository
+        name: flux-system
+    git:
+        checkout:
+            ref:
+                branch: main
+        commit:
+            author:
+                name: fluxcdbot
+                email: fluxcdbot@users.noreply.github.com
+            messageTemplate: 'chore: update agent images'
+        push:
+            branch: main
+    update:
+        path: ./clusters/<cluster>
+        strategy: Setters
