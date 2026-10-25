@@ -22,6 +22,14 @@ if [ -n "$leftover" ]; then
     echo "the image ships build tooling: $(echo "$leftover" | tr '\n' ' ')" >&2
     exit 1
 fi
+# Nor its dependency tree: whatever npm reports as extraneous was left behind by
+# the removal above.
+extraneous=$(docker run --rm -e NPM_CONFIG_UPDATE_NOTIFIER=false "$image" sh -c 'cd /app && npm ls --omit=dev --all 2>/dev/null | grep extraneous || true')
+if [ -n "$extraneous" ]; then
+    echo "the image ships extraneous packages:" >&2
+    echo "$extraneous" >&2
+    exit 1
+fi
 
 container=$(docker run -d --read-only --tmpfs /tmp --user 1000:1000 \
     -p "127.0.0.1:$port:3000" \
