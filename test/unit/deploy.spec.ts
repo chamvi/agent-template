@@ -3,10 +3,25 @@ import { expect, it } from 'vitest';
 import { parseAllDocuments } from 'yaml';
 
 const read = (name: string) => readFileSync(`deploy/flux/${name}.yaml`, 'utf8');
-const docs = (name: string) => parseAllDocuments(read(name)).map((doc) => {
+const parse = (text: string) => parseAllDocuments(text).map((doc) => {
     expect(doc.errors).toEqual([]);
     return doc.toJSON();
 });
+const docs = (name: string) => parse(read(name));
+
+// The ghcr.io/chamvi/* images need no pull secret; a private application image uses the
+// commented imagePullSecrets and secretRef options, which must then name a Secret.
+function checkPullSecrets(release: any, automation: any[]) {
+    const pullSecrets = release.spec.values.imagePullSecrets;
+    if (pullSecrets !== undefined) {
+        expect(pullSecrets).toEqual(expect.arrayContaining([expect.objectContaining({ name: expect.any(String) })]));
+        expect(pullSecrets.every((entry: { name?: unknown }) => typeof entry.name === 'string' && entry.name !== '')).toBe(true);
+    }
+    const { secretRef } = automation[0].spec;
+    if (secretRef !== undefined) {
+        expect(secretRef).toEqual({ name: expect.stringMatching(/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/) });
+    }
+}
 
 it('uses current Flux APIs and consistent image policy names', () => {
     const release = docs('release')[0];
@@ -45,9 +60,19 @@ it('uses current Flux APIs and consistent image policy names', () => {
         'resources',
     ].includes(key))).toEqual([]);
     expect(release.spec.values.env.CHAMVI_PUBLIC_URL).toBe(new URL(release.spec.values.env.CHAMVI_PUBLIC_URL).origin);
-    expect(JSON.stringify([release, ...automation])).not.toMatch(/imagePullSecrets|"secretRef"/);
+    checkPullSecrets(release, automation);
     expect(docs('kustomization')[0].resources).toEqual(['namespace.yaml', 'chart.yaml', 'release.yaml']);
     expect(docs('secret.example')[0].stringData).not.toHaveProperty('RESUME_SECRET');
+});
+
+it('accepts the commented private-image options once enabled', () => {
+    const uncomment = (text: string, key: string) => text.replace(new RegExp(`# (${key}:.*)\\n(\\s*)#( +name: .*)`), '$1\n$2$3')
+        .replace(new RegExp(`# (${key}: \\[.*)`), '$1');
+    const release = parse(uncomment(read('release'), 'imagePullSecrets'))[0];
+    const automation = parse(uncomment(read('image-automation'), 'secretRef'));
+    expect(release.spec.values.imagePullSecrets).toEqual([{ name: 'registry' }]);
+    expect(automation[0].spec.secretRef).toEqual({ name: 'registry' });
+    checkPullSecrets(release, automation);
 });
 
 // Leaf paths of the agent-app 0.1.x values.yaml these examples may set (the chart
