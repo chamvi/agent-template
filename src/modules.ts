@@ -7,7 +7,8 @@ import { uiModule } from '@chamvi/ui/module';
 // import { openclawModule } from '@chamvi/channel-openclaw/module';
 // import { consoleChannelModule } from '@chamvi/app';
 
-// GitHub reads GITHUB_APP_* now; use injectGithubContext(ctx).readTools() in an agent's tools factory.
+// githubModule() reads GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY and GITHUB_WEBHOOK_SECRET (see .env.example) when
+// called; use injectGithubContext(ctx).readTools() in an agent's tools factory.
 // const github = githubModule();
 
 export const modules: NonNullable<AppOptions['modules']> = [
