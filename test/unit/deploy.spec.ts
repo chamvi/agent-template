@@ -24,8 +24,12 @@ it('uses current Flux APIs and consistent image policy names', () => {
     expect(automation[0].spec.image).toBe(release.spec.values.image.repository);
     expect(automation[0].metadata.name).toBe(release.metadata.name);
     expect(automation[1].metadata.name).toBe(release.metadata.name);
-    expect(read('release')).toContain('# {"$imagepolicy": "flux-system:agent-template:tag"}');
-    expect(read('release')).toContain('# {"$imagepolicy": "flux-system:agent-template:name"}');
+    const policy = automation[1].metadata;
+    const marker = (field: string) => `# {"$imagepolicy": "${policy.namespace}:${policy.name}:${field}"}`;
+    expect(read('release')).toContain(marker('tag'));
+    expect(read('release')).toContain(marker('name'));
+    expect(parseAllDocuments(readFileSync('deploy/kind/values.yaml', 'utf8'))[0]!.toJSON().secrets)
+        .toEqual(release.spec.values.secrets);
     expect(Object.keys(release.spec.values).filter((key) => ![
         'image', 
         'imagePullSecrets', 

@@ -13,7 +13,7 @@ gh repo create <owner>/<name> --template chamvi/agent-template --private --clone
 GitHub does not substitute names. In your new checkout:
 
 - Change `package.json`'s `name` from `agent-template`.
-- In `deploy/flux`, replace the app/release name `agent-template`, the namespace `agents` and the image `ghcr.io/chamvi/agent-template` (with `ghcr.io/<owner>/<name>`) everywhere, including the `$imagepolicy` markers and the Secret name `agent-template-env`. `test/unit/deploy.spec.ts` fails while the names disagree.
+- In `deploy/flux` and `deploy/kind/values.yaml`, replace the app/release name `agent-template`, the namespace `agents` and the image `ghcr.io/chamvi/agent-template` (with `ghcr.io/<owner>/<name>`) everywhere, including the `$imagepolicy` markers and the Secret name `agent-template-env`. `test/unit/deploy.spec.ts` fails while the names disagree.
 - Review and replace `LICENSE` and `NOTICE` for your own project.
 - Find what is left:
 
