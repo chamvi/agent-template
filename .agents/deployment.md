@@ -30,7 +30,7 @@ For origin `https://agents.example.com` and base path `/api`, UI approvals live 
 
 Use one scheduling strategy: the running app's cron channel or chart `cronJobs` (the chart then sets `CHAMVI_SCHEDULER=false` on the service). The example job is `chamvi run-job example 'cron:0 8 * * 1'`; agent and subscription id are positional CLI arguments. Keep the id a single argument. Jobs and the service must share durable storage.
 
-Coordinate the pod termination grace period with readiness delay, engine drain, server close and CLI force-exit settings. On SIGTERM, readiness fails, intake/schedules stop, executions drain, then storage closes. `test/unit/cli.spec.ts` (the CLI) and `scripts/image-smoke.sh` (the image, through tini) verify exit 0 on SIGTERM; the drain inside a pod's grace period and restart recovery need a cluster (the kind acceptance).
+Coordinate the pod termination grace period with readiness delay, engine drain, server close and CLI force-exit settings. On SIGTERM, readiness fails, intake/schedules stop, executions drain, then storage closes. `test/unit/cli.spec.ts` (the CLI) and `scripts/image-smoke.sh` (the image, through tini) verify exit 0 on SIGTERM; the drain inside a pod's grace period and restart recovery need a cluster (the README's "Try it on kind" steps).
 
 ## Image and Flux
 

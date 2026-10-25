@@ -145,6 +145,24 @@ CI (`.github/workflows/ci.yml`) runs lint, typecheck and test on Node 22 and 24,
 
 The image is `ghcr.io/<owner>/<repo>`, pushed with the workflow's `GITHUB_TOKEN`.
 
+## Try it on kind
+
+`deploy/kind/values.yaml` installs a locally built image with the [agent-app chart](https://github.com/chamvi/helm) on a [kind](https://kind.sigs.k8s.io) cluster:
+
+```bash
+docker build -t agent-template:kind .
+kind load docker-image agent-template:kind
+kubectl create namespace agents
+kubectl -n agents create secret generic agent-template-env \
+    --from-literal=CHAMVI_TOKENS='[{"value":"change-me-at-least-16-characters","id":"owner","permissions":["*"]}]' \
+    --from-literal=ANTHROPIC_API_KEY=<your key>
+helm install agent-template oci://ghcr.io/chamvi/helm/agent-app --version '>=0.1.0 <0.2.0' -n agents \
+    -f deploy/kind/values.yaml --wait
+kubectl -n agents port-forward svc/agent-template-agent-app 8080:80
+```
+
+Then `curl localhost:8080/readyz` answers `200` and the dashboard is at `http://localhost:8080/ui/`. The chart names its objects `<release>-agent-app`. Without `DATABASE_URL` in the Secret, runs live in memory and are gone with the pod.
+
 ## Deploy with Flux
 
 `deploy/flux` deploys the image with the [agent-app chart](https://github.com/chamvi/helm) from `oci://ghcr.io/chamvi/helm/agent-app`:
