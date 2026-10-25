@@ -31,17 +31,17 @@ it('uses current Flux APIs and consistent image policy names', () => {
     expect(parseAllDocuments(readFileSync('deploy/kind/values.yaml', 'utf8'))[0]!.toJSON().secrets)
         .toEqual(release.spec.values.secrets);
     expect(Object.keys(release.spec.values).filter((key) => ![
-        'image', 
-        'imagePullSecrets', 
-        'replicas', 
-        'command', 
-        'basePath', 
-        'env', 
+        'image',
+        'imagePullSecrets',
+        'replicas',
+        'command',
+        'basePath',
+        'env',
         'secrets',
-        'ingress', 
-        'sandbox', 
-        'cronJobs', 
-        'serviceMonitor', 
+        'ingress',
+        'sandbox',
+        'cronJobs',
+        'serviceMonitor',
         'resources',
     ].includes(key))).toEqual([]);
     expect(release.spec.values.env.CHAMVI_PUBLIC_URL).toBe(new URL(release.spec.values.env.CHAMVI_PUBLIC_URL).origin);

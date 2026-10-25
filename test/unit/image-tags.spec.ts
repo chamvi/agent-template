@@ -16,9 +16,9 @@ it.each([
     const result = spawnSync('sh', [resolve('scripts/image-tags.sh')], {
         encoding: 'utf8',
         env: {
-            PATH: process.env.PATH, 
-            GITHUB_REF_TYPE: type, 
-            GITHUB_REF_NAME: name, 
+            PATH: process.env.PATH,
+            GITHUB_REF_TYPE: type,
+            GITHUB_REF_NAME: name,
         },
     });
     expect([result.status, result.stdout], result.stderr).toEqual([code, stdout]);

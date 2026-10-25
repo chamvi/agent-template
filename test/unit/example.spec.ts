@@ -10,8 +10,8 @@ it.each([
     ['hello world', 2],
 ])('counts whitespace-separated words in %j', async (text, words) => {
     expect(await countWords.execute!({ text }, {
-        toolCallId: 'count', 
-        messages: [], 
+        toolCallId: 'count',
+        messages: [],
         context: {} as never,
     })).toEqual({ words });
 });
@@ -21,9 +21,9 @@ it('subscribes to HTTP and a weekly Berlin cron job', () => {
     expect(example.definition.channels).toMatchObject([
         { channel: 'http', id: 'http' },
         {
-            channel: 'cron', 
-            id: 'cron:0 8 * * 1', 
-            options: { timezone: 'Europe/Berlin' }, 
+            channel: 'cron',
+            id: 'cron:0 8 * * 1',
+            options: { timezone: 'Europe/Berlin' },
         },
     ]);
 });
@@ -36,9 +36,9 @@ it('executes the scheduled tool call and feeds the count back to the model', asy
     const app = createApp({ agents: [example], models: fakeModels(model) });
     try {
         const result = await app.runJob({
-            agent: 'example', 
-            subscription: 'cron:0 8 * * 1', 
-            env: {}, 
+            agent: 'example',
+            subscription: 'cron:0 8 * * 1',
+            env: {},
         });
         expect(result).toMatchObject({ status: 'completed', exitCode: 0 });
         expect(model.doStreamCalls).toHaveLength(2);

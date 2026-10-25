@@ -20,9 +20,9 @@ it('starts the built entry, serves authenticated HTTP/UI and exits 0 on SIGTERM'
             CHAMVI_DRAIN_TIMEOUT_MS: '2000',
             CHAMVI_FORCE_EXIT_MS: '5000',
             CHAMVI_TOKENS: JSON.stringify([{
-                value: token, 
-                id: 'test', 
-                permissions: ['*'], 
+                value: token,
+                id: 'test',
+                permissions: ['*'],
             }]),
         });
         try {

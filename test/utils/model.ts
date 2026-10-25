@@ -23,9 +23,9 @@ export function fakeModel(turns: FakeTurn[]): MockLanguageModelV4 {
                 chunks.push(
                     { type: 'text-start', id: 'text' },
                     {
-                        type: 'text-delta', 
-                        id: 'text', 
-                        delta: response.text, 
+                        type: 'text-delta',
+                        id: 'text',
+                        delta: response.text,
                     },
                     { type: 'text-end', id: 'text' },
                 );
@@ -43,24 +43,24 @@ export function fakeModel(turns: FakeTurn[]): MockLanguageModelV4 {
                 finishReason: { unified: response.toolCalls?.length ? 'tool-calls' : 'stop', raw: undefined },
                 usage: {
                     inputTokens: {
-                        total: 1, 
-                        noCache: 1, 
-                        cacheRead: undefined, 
-                        cacheWrite: undefined, 
+                        total: 1,
+                        noCache: 1,
+                        cacheRead: undefined,
+                        cacheWrite: undefined,
                     },
                     outputTokens: {
-                        total: 1, 
-                        text: 1, 
-                        reasoning: undefined, 
+                        total: 1,
+                        text: 1,
+                        reasoning: undefined,
                     },
                 },
             });
             return {
                 stream: simulateReadableStream({
-                    chunks, 
-                    initialDelayInMs: null, 
-                    chunkDelayInMs: null, 
-                }), 
+                    chunks,
+                    initialDelayInMs: null,
+                    chunkDelayInMs: null,
+                }),
             };
         },
     });

@@ -7,10 +7,10 @@ export const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 export const CLI = fileURLToPath(new URL('../../node_modules/@chamvi/cli/dist/cli.mjs', import.meta.url));
 
 export type ProcessResult = {
-    code: number | null; 
-    signal: NodeJS.Signals | null; 
-    stdout: string; 
-    stderr: string 
+    code: number | null;
+    signal: NodeJS.Signals | null;
+    stdout: string;
+    stderr: string
 };
 
 export function startNode(args: string[], env: NodeJS.ProcessEnv = {}): {
@@ -35,10 +35,10 @@ export function startNode(args: string[], env: NodeJS.ProcessEnv = {}): {
         child.once('close', (code, signal) => {
             clearTimeout(timeout);
             resolve({
-                code, 
-                signal, 
-                stdout, 
-                stderr, 
+                code,
+                signal,
+                stdout,
+                stderr,
             });
         });
     });

@@ -1,11 +1,11 @@
 import { createApp } from '@chamvi/app';
 import type { IApp } from '@chamvi/app';
-import { 
-    afterAll, 
-    beforeAll, 
-    expect, 
-    it, 
-    vi, 
+import {
+    afterAll,
+    beforeAll,
+    expect,
+    it,
+    vi,
 } from 'vitest';
 import { example } from '../../src/agents/example.ts';
 import { modules } from '../../src/modules.ts';
@@ -33,9 +33,9 @@ beforeAll(async () => {
             HOST: '127.0.0.1',
             CHAMVI_SCHEDULER: 'false',
             CHAMVI_TOKENS: JSON.stringify([{
-                value: TOKEN, 
-                id: 'test', 
-                permissions: ['*'], 
+                value: TOKEN,
+                id: 'test',
+                permissions: ['*'],
             }]),
         },
     });
@@ -120,9 +120,9 @@ it('completes a REST run with a stored tool result and deduplicates retries', as
             output: 'Three words.',
             steps: expect.arrayContaining([
                 expect.objectContaining({
-                    kind: 'tool', 
-                    name: 'count_words', 
-                    output: { words: 3 }, 
+                    kind: 'tool',
+                    name: 'count_words',
+                    output: { words: 3 },
                 }),
             ]),
         });

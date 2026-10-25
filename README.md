@@ -59,11 +59,11 @@ The answer is the run itself with `status`, `output` and `steps`. Without `DATAB
 `src/agents/example.ts`, embedded verbatim and type-checked with the app:
 
 ```ts
-import { 
-    cron, 
-    defineAgent, 
-    defineTool, 
-    http, 
+import {
+    cron,
+    defineAgent,
+    defineTool,
+    http,
 } from '@chamvi/app';
 import { z } from 'zod';
 

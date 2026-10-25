@@ -19,9 +19,9 @@ it('refuses to start without the provider key', async () => {
                 HOST: '127.0.0.1',
                 ANTHROPIC_API_KEY: '',
                 CHAMVI_TOKENS: JSON.stringify([{
-                    value: 't'.repeat(16), 
-                    id: 'test', 
-                    permissions: [], 
+                    value: 't'.repeat(16),
+                    id: 'test',
+                    permissions: [],
                 }]),
             },
         })).rejects.toThrow(/ANTHROPIC_API_KEY/);
