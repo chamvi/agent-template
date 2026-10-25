@@ -15,6 +15,14 @@ if [ "$uid" != 1000 ]; then
     exit 1
 fi
 
+# The build toolchain must not ship: @chamvi/cli's optional tsdown peer makes
+# npm keep it through `npm prune --omit=dev`.
+leftover=$(docker run --rm "$image" sh -c 'cd /app/node_modules && for dir in tsdown rolldown rolldown-plugin-dts @rolldown @oxc-project typescript; do if [ -e "$dir" ]; then echo "$dir"; fi; done')
+if [ -n "$leftover" ]; then
+    echo "the image ships build tooling: $(echo "$leftover" | tr '\n' ' ')" >&2
+    exit 1
+fi
+
 container=$(docker run -d --read-only --tmpfs /tmp --user 1000:1000 \
     -p "127.0.0.1:$port:3000" \
     -e "CHAMVI_TOKENS=[{\"value\":\"$token\",\"id\":\"smoke\",\"permissions\":[]}]" \

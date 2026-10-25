@@ -132,7 +132,7 @@ docker build -t agent-template:local .
 sh scripts/image-smoke.sh agent-template:local
 ```
 
-The Dockerfile builds with `npm ci` and `chamvi build` on `node:24-trixie-slim`, then copies `package.json`, `dist/` and the production `node_modules/` onto `ghcr.io/chamvi/node:24` (pinned by digest; tini, uid 1000, `/app`). `scripts/image-smoke.sh` runs it the way the chart does (read-only root, a `/tmp` tmpfs, uid 1000), waits for `/readyz` and `/ui/`, and checks that `docker stop` ends it with exit code 0. The CI `docker` job runs the same script.
+The Dockerfile builds with `npm ci` and `chamvi build` on `node:24-trixie-slim`, then copies `package.json`, `dist/` and the production `node_modules/` (minus the build toolchain, which `npm prune --omit=dev` keeps because of `@chamvi/cli`'s optional `tsdown` peer) onto `ghcr.io/chamvi/node:24` (pinned by digest; tini, uid 1000, `/app`). `scripts/image-smoke.sh` runs it the way the chart does (read-only root, a `/tmp` tmpfs, uid 1000), waits for `/readyz` and `/ui/`, and checks that `docker stop` ends it with exit code 0. The CI `docker` job runs the same script.
 
 Outside Docker, `npm run build` writes `dist/index.mjs` with every dependency external and `npm run start` runs it with the process environment (it does not read `.env`).
 
