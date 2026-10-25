@@ -1,0 +1,12 @@
+node_modules
+dist
+.tmp
+.superpowers
+coverage
+.env
+.env.*
+.npmrc
+.git
+deploy
+test
+.github

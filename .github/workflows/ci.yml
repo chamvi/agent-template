@@ -1,0 +1,124 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+        tags: ['v*']
+    pull_request:
+        branches: [main]
+
+permissions:
+    contents: read
+
+concurrency:
+    group: ci-${{ github.ref }}
+    # Superseded pull request runs are cancelled; pushes to main and tags always finish their image.
+    cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+    check:
+        name: Check (Node ${{ matrix.node }})
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                node: [22, 24]
+        steps:
+            - uses: actions/checkout@v7
+            - uses: actions/setup-node@v7
+              with:
+                  node-version: ${{ matrix.node }}
+                  cache: npm
+            - run: npm ci
+            - run: npm run lint
+            - run: npm run typecheck
+            - run: npm run test
+
+    workflows:
+        name: Lint workflows and scripts
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+            - name: actionlint
+              run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12 -color
+            - name: shellcheck
+              run: docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:v0.11.0 -s sh /mnt/scripts/image-tags.sh /mnt/scripts/image-smoke.sh
+
+    docker:
+        name: Docker smoke
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+            - run: docker build -t app:ci .
+            # Read-only root, writable /tmp, uid 1000, /readyz and /ui/ green, exit code 0 on docker stop.
+            - run: sh scripts/image-smoke.sh app:ci 3000
+
+    deploy:
+        name: Validate Flux examples
+        runs-on: ubuntu-latest
+        env:
+            KUBECONFORM_VERSION: v0.8.0
+            FLUX_VERSION: v2.9.6
+            CHART: oci://ghcr.io/chamvi/helm/agent-app
+            CHART_RANGE: '>=0.1.0 <0.2.0'
+        steps:
+            - uses: actions/checkout@v7
+            - name: Install kubeconform
+              run: |
+                  cd "$RUNNER_TEMP"
+                  base="https://github.com/yannh/kubeconform/releases/download/$KUBECONFORM_VERSION"
+                  curl -fsSLO "$base/kubeconform-linux-amd64.tar.gz"
+                  curl -fsSLO "$base/CHECKSUMS"
+                  grep ' kubeconform-linux-amd64.tar.gz$' CHECKSUMS | sha256sum -c -
+                  tar -xzf kubeconform-linux-amd64.tar.gz kubeconform
+                  echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+            - name: Download the Flux CRD schemas
+              run: |
+                  mkdir -p /tmp/flux-crd-schemas
+                  curl -fsSL "https://github.com/fluxcd/flux2/releases/download/$FLUX_VERSION/crd-schemas.tar.gz" \
+                      | tar -xz -C /tmp/flux-crd-schemas
+            - name: Validate deploy/flux
+              # No -ignore-missing-schemas: a misspelled kind must fail. The kustomize
+              # Kustomization has no schema anywhere and is skipped.
+              run: >-
+                  kubeconform -strict -summary -skip Kustomization
+                  -schema-location default
+                  -schema-location '/tmp/flux-crd-schemas/{{ .ResourceKind }}{{ .KindSuffix }}.json'
+                  deploy/flux
+            - uses: azure/setup-helm@v5
+              with:
+                  version: v4.3.1
+            - name: Render the chart with the release and kind values
+              run: |
+                  yq '.spec.values' deploy/flux/release.yaml > /tmp/release-values.yaml
+                  helm template agent-template "$CHART" --version "$CHART_RANGE" -n agents -f /tmp/release-values.yaml > /tmp/release.yaml
+                  helm template agent-template "$CHART" --version "$CHART_RANGE" -n agents -f deploy/kind/values.yaml > /tmp/kind.yaml
+                  grep -q '^kind: Deployment$' /tmp/release.yaml
+                  grep -q '^kind: Deployment$' /tmp/kind.yaml
+
+    image:
+        name: Push image
+        if: github.event_name == 'push'
+        needs: [check, workflows, docker, deploy]
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write
+        steps:
+            - uses: actions/checkout@v7
+            # scripts/image-tags.sh is the one source of tags: main-<sha7>-<commit ts> on main,
+            # <semver> on a v* tag. Any other ref makes it exit 1, which fails the job
+            # (bash runs with -e) instead of pushing an unexpected tag.
+            - id: tags
+              run: |
+                  {
+                      echo 'list<<TAGS'
+                      sh scripts/image-tags.sh
+                      echo 'TAGS'
+                  } >> "$GITHUB_OUTPUT"
+            - uses: tada5hi/craneship@v4
+              with:
+                  registryTag: ${{ steps.tags.outputs.list }}
+                  # Off: craneship would add the trimmed git tag next to the script's own.
+                  gitTag: 'false'
+                  platforms: linux/amd64,linux/arm64

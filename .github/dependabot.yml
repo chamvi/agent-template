@@ -1,0 +1,28 @@
+version: 2
+updates:
+    - package-ecosystem: npm
+      directory: /
+      schedule:
+          interval: daily
+      groups:
+          chamvi:
+              patterns: ['@chamvi/*']
+          production:
+              dependency-type: production
+              exclude-patterns: ['@chamvi/*']
+          development:
+              dependency-type: development
+              exclude-patterns: ['@chamvi/*']
+    - package-ecosystem: docker
+      directory: /
+      schedule:
+          interval: weekly
+      ignore:
+          - dependency-name: node
+            update-types: ['version-update:semver-major']
+          - dependency-name: ghcr.io/chamvi/node
+            update-types: ['version-update:semver-major']
+    - package-ecosystem: github-actions
+      directory: /
+      schedule:
+          interval: weekly
