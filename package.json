@@ -1,0 +1,37 @@
+{
+    "name": "agent-template",
+    "private": true,
+    "type": "module",
+    "license": "Apache-2.0",
+    "engines": { "node": ">=22.18.0" },
+    "scripts": {
+        "dev": "chamvi dev",
+        "build": "chamvi build",
+        "start": "chamvi start",
+        "test": "vitest --config test/vitest.config.ts --run",
+        "typecheck": "tsc --noEmit",
+        "lint": "eslint",
+        "lint:fix": "npm run lint -- --fix"
+    },
+    "dependencies": {
+        "@ai-sdk/anthropic": "^4.0.85",
+        "@chamvi/app": "^0.2.1",
+        "@chamvi/cli": "^0.2.1",
+        "@chamvi/ui": "^0.2.1",
+        "ai": "^7.0.146",
+        "pg": "^8",
+        "typeorm": "^1.1.2",
+        "zod": "^4.1.8"
+    },
+    "devDependencies": {
+        "@tada5hi/eslint-config": "^2.4.0",
+        "@tada5hi/tsconfig": "^0.7.2",
+        "@types/node": "^24",
+        "eslint": "^10",
+        "tsdown": "^0.23.1",
+        "typescript": "^6.0.3",
+        "typescript-eslint": "^8",
+        "vitest": "^5.0.5",
+        "yaml": "^2"
+    }
+}

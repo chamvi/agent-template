@@ -1,0 +1,37 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+    name: agent-template
+    namespace: agents
+spec:
+    interval: 10m
+    chartRef:
+        kind: OCIRepository
+        name: agent-app
+        namespace: agents
+    values:
+        image:
+            repository: ghcr.io/chamvi/agent-template # {"$imagepolicy": "flux-system:agent-template:name"}
+            # Placeholder: set a pushed tag before the first apply; the image automation rewrites it afterwards.
+            tag: main-0000000-0 # {"$imagepolicy": "flux-system:agent-template:tag"}
+        # Private application image only:
+        # imagePullSecrets: [{ name: registry }]
+        secrets: [agent-template-env]
+        # The chart sets PORT and CHAMVI_BASE_PATH (from its basePath value) itself.
+        env:
+            CHAMVI_PUBLIC_URL: https://agents.example.com
+        ingress:
+            enabled: false
+            className: ''
+            host: agents.example.com
+            tls:
+                secretName: ''
+        # Fire cron subscriptions as Kubernetes CronJobs instead of in the app
+        # (the chart then sets CHAMVI_SCHEDULER=false on the Deployment):
+        # A failed job's error is readable afterwards only with DATABASE_URL in the Secret.
+        # cronJobs:
+        #     - name: example-weekly
+        #       schedule: '0 8 * * 1'
+        #       timeZone: Europe/Berlin
+        #       agent: example
+        #       subscription: 'cron:0 8 * * 1'
