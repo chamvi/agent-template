@@ -1,6 +1,7 @@
 import type { AppOptions } from '@chamvi/app';
 import { customProvider, simulateReadableStream } from 'ai';
 import { MockLanguageModelV4 } from 'ai/test';
+import { EXAMPLE_MODEL } from '../../src/agents/example.ts';
 
 export type FakeTurn = {
     text?: string;
@@ -66,6 +67,8 @@ export function fakeModel(turns: FakeTurn[]): MockLanguageModelV4 {
     });
 }
 
-export function fakeModels(model: MockLanguageModelV4): NonNullable<AppOptions['models']> {
-    return { anthropic: customProvider({ languageModels: { 'claude-sonnet-5-5': model } }) };
+/** Serves `model` under the provider and id of a `'<provider>/<model>'` string, by default the example agent's. */
+export function fakeModels(model: MockLanguageModelV4, modelId: string = EXAMPLE_MODEL): NonNullable<AppOptions['models']> {
+    const [provider, id] = modelId.split('/', 2) as [string, string];
+    return { [provider]: customProvider({ languageModels: { [id]: model } }) };
 }
