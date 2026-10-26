@@ -40,6 +40,6 @@ The Flux source is `oci://ghcr.io/chamvi/helm/agent-app` (`>=0.1.0 <0.2.0`). Ren
 
 New GHCR images are private by default. A private image needs credentials for both Flux scanning (`ImageRepository.spec.secretRef`) and pod pulls (`imagePullSecrets`). The `ghcr.io/chamvi/*` images and the chart need no pull secrets.
 
-Before enabling Kubernetes sandboxes, add the provider package, least-privilege RBAC and tested network policy. Workspace isolation alone does not prevent reaching cluster services or cloud metadata.
+Before enabling Kubernetes sandboxes, add the provider package, least-privilege RBAC and tested network policy. Workspace isolation alone does not prevent reaching cluster services or cloud metadata. Workspace pods run as root with a writable root filesystem by default (so `apt` and toolchain installs work), which needs a sandbox namespace labelled for Pod Security `baseline`; the provider's `user` and `readOnlyRoot` options restore a `restricted`-compatible pod.
 
 Replace the placeholder release image tag before the first deployment (image automation rewrites it afterwards) and create the Secret separately.
