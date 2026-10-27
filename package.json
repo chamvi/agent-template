@@ -15,10 +15,10 @@
     },
     "dependencies": {
         "@ai-sdk/anthropic": "^4.0.85",
-        "@chamvi/app": "^0.2.1",
-        "@chamvi/cli": "^0.2.1",
-        "@chamvi/ui": "^0.2.1",
-        "ai": "^7.0.146",
+        "@chamvi/app": "^0.3.0",
+        "@chamvi/cli": "^0.3.0",
+        "@chamvi/ui": "^0.3.0",
+        "ai": "^7.0.150",
         "pg": "^8",
         "typeorm": "^1.1.2",
         "zod": "^4.1.8"
