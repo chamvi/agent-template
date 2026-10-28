@@ -78,7 +78,6 @@ export const countWords = defineTool({
 
 export const example = defineAgent({
     name: 'example',
-    model: EXAMPLE_MODEL,
     instructions: 'Summarize the supplied text in one sentence. Call count_words on the text first and state the word count in your answer.',
     channels: [
         http.on({ schema: z.object({ text: z.string().min(1).max(10_000) }) }),
@@ -99,6 +98,8 @@ The model is told to call `count_words` before it summarizes. The tool counts no
 1. Add `src/agents/<name>.ts`, exporting a `defineAgent(...)` result with a unique kebab-case name.
 2. Import it in `src/index.ts` and append it to the `agents` array.
 3. Add a test with the fake model (see Test).
+
+The app entry sets `createApp({ model: 'anthropic/claude-sonnet-5-5', agents: [example], modules })`. Agents inherit this default unless they explicitly set their own model. `CHAMVI_MODEL` overrides the app default, so deployments can choose a model without editing the agent. Run `chamvi start --check` after building to validate configuration without starting the server or calling a model.
 
 Import the agent API from `@chamvi/app`, not `@chamvi/core` or `orkos`. Relative imports carry `.ts`, and `src/index.ts` stays a synchronous `export default createApp(...)` that starts nothing.
 

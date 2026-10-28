@@ -16,7 +16,6 @@ export const countWords = defineTool({
 
 export const example = defineAgent({
     name: 'example',
-    model: EXAMPLE_MODEL,
     instructions: 'Summarize the supplied text in one sentence. Call count_words on the text first and state the word count in your answer.',
     channels: [
         http.on({ schema: z.object({ text: z.string().min(1).max(10_000) }) }),
