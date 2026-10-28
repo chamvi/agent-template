@@ -3,7 +3,9 @@
     "private": true,
     "type": "module",
     "license": "Apache-2.0",
-    "engines": { "node": ">=22.18.0" },
+    "engines": {
+        "node": ">=22.18.0"
+    },
     "scripts": {
         "dev": "chamvi dev",
         "build": "chamvi build",
@@ -15,9 +17,9 @@
     },
     "dependencies": {
         "@ai-sdk/anthropic": "^4.0.85",
-        "@chamvi/app": "^0.3.0",
-        "@chamvi/cli": "^0.3.0",
-        "@chamvi/ui": "^0.3.0",
+        "@chamvi/app": "^0.3.1",
+        "@chamvi/cli": "^0.3.1",
+        "@chamvi/ui": "^0.3.1",
         "ai": "^7.0.150",
         "pg": "^8",
         "typeorm": "^1.1.2",

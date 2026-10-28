@@ -11,7 +11,7 @@ it('default-exports an app without starting its model registry', async () => {
 });
 
 it('refuses to start without the provider key', async () => {
-    const app = createApp({ agents: [example] });
+    const app = createApp({ model: 'anthropic/claude-sonnet-5-5', agents: [example] });
     try {
         await expect(app.start({
             env: {

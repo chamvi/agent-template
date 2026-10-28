@@ -16,6 +16,10 @@ it.each([
     })).toEqual({ words });
 });
 
+it('inherits the app-wide default model', () => {
+    expect(example.definition.model).toBeUndefined();
+});
+
 it('subscribes to HTTP and a weekly Berlin cron job', () => {
     expect(example.name).toBe('example');
     expect(example.definition.channels).toMatchObject([
@@ -33,7 +37,11 @@ it('executes the scheduled tool call and feeds the count back to the model', asy
         { toolCalls: [{ toolName: 'count_words', input: { text: 'one two three four five' } }] },
         { text: 'A greeting of five words.' },
     ]);
-    const app = createApp({ agents: [example], models: fakeModels(model) });
+    const app = createApp({
+        model: 'anthropic/claude-sonnet-5-5',
+        agents: [example],
+        models: fakeModels(model),
+    });
     try {
         const result = await app.runJob({
             agent: 'example',
@@ -59,8 +67,28 @@ it('executes the scheduled tool call and feeds the count back to the model', asy
     }
 });
 
+it('lets CHAMVI_MODEL override the app default for a real run', async () => {
+    const model = fakeModel([{ text: 'Selected the alternate model.' }]);
+    const app = createApp({
+        model: 'unused/default',
+        agents: [example],
+        models: fakeModels(model, 'alternate/model-id'),
+    });
+    try {
+        const result = await app.runJob({ agent: 'example', env: { CHAMVI_MODEL: 'alternate/model-id' } });
+        expect(result).toMatchObject({ status: 'completed', exitCode: 0 });
+        expect(model.doStreamCalls).toHaveLength(1);
+    } finally {
+        await app.stop();
+    }
+});
+
 it('returns exit code 1 for a failed model run', async () => {
-    const app = createApp({ agents: [example], models: fakeModels(fakeModel([])) });
+    const app = createApp({
+        model: 'anthropic/claude-sonnet-5-5',
+        agents: [example],
+        models: fakeModels(fakeModel([])),
+    });
     try {
         expect(await app.runJob({ agent: 'example', env: {} }))
             .toMatchObject({ status: 'failed', exitCode: 1 });
