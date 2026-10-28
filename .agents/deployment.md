@@ -36,6 +36,13 @@ Coordinate the pod termination grace period with readiness delay, engine drain, 
 
 The image builds on `node:24-trixie-slim` and runs on `ghcr.io/chamvi/node:24` pinned by digest (Dependabot's docker updates move it): tini, uid 1000, `/app`, `CMD node node_modules/@chamvi/cli/dist/cli.mjs start`. It writes nothing outside `/tmp`, so it runs with a read-only root, as the chart requires; `scripts/image-smoke.sh` checks that and exit code 0 on `docker stop`.
 
+When an app explicitly adopts approved local skills in a chamvi release exporting `hashSkillBundle` and
+`loadSkillBundles`, keep reviewed passive bundles in the image at the absolute paths in its tracked
+`loadSkillBundles` descriptors, readable by uid 1000. Add an explicit runtime-stage Docker `COPY` for those assets.
+Pin reviewed bytes separately with `hashSkillBundle`; update bundle bytes and the tracked digest together and
+rebuild. The chart adds no skills mount or installation step, and source watch/reload does not watch external
+bundle directories.
+
 The Flux source is `oci://ghcr.io/chamvi/helm/agent-app` (`>=0.1.0 <0.2.0`). Rename app/release identifiers, namespace, image, image-policy markers and the kind values' Secret name consistently; `test/unit/deploy.spec.ts` derives every expected name from the manifests, so a consistent rename passes. The release sets only keys of the chart's `values.yaml`; the chart owns `PORT`, `CHAMVI_BASE_PATH` (its `basePath` value) and, with `cronJobs`, `CHAMVI_SCHEDULER=false`. Main-branch tags are selected by their numeric timestamp, release tags by semver. Image automation belongs in the fleet repository.
 
 New GHCR images are private by default. A private image needs credentials for both Flux scanning (`ImageRepository.spec.secretRef`) and pod pulls (`imagePullSecrets`). The `ghcr.io/chamvi/*` images and the chart need no pull secrets.

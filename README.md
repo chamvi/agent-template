@@ -117,6 +117,12 @@ Feature modules come from the package's `/module` subpath (`@chamvi/github/modul
 
 Folder agents are optional next to the code agents: put a default-exported agent in `agents/<name>/agent.ts` (or the directory in `CHAMVI_AGENTS_DIR`), named like its folder. The app loads and watches them in start mode.
 
+### Approved local skills
+
+After upgrading to a chamvi release that exports `hashSkillBundle` and `loadSkillBundles`, an agent can opt into reviewed local instruction/reference bundles. Review each bundle, compute its digest with `hashSkillBundle` as a separate review step, and commit the exact name, version, absolute directory and SHA-256 pin in agent configuration. Build the catalog explicitly in the agent module, append `catalog.instructions` to its instructions and compose `catalog.tools` with its existing tools, checking for a `load_skill` name collision. Compute the expected digest during review, never dynamically from whatever files happen to be present at startup. The catalog exposes approved metadata initially; `load_skill` returns the selected body or reference through normal tool results. Existing tool policy and approvals still apply. See [approved local skills](https://chamvi.dev/guide/skills) for the complete API and supported passive file formats when that release and guide ship.
+
+Bundle files are runtime assets. The starter Dockerfile copies compiled JavaScript and dependencies only, so explicitly copy your reviewed `approved-skills/` directory into the final image, for example with `COPY approved-skills ./approved-skills` in the runtime stage, and configure the bundle's absolute runtime path under `/app/approved-skills/`. Keep files readable by uid 1000. External bundle edits are not automatically watched; changed bytes under an old pin fail after restart. Upgrade the reviewed files and pin together and rebuild the image. Repository files and issue text cannot add approved skills or grant tools; chamvi does not automatically discover or install bundles.
+
 ## Test
 
 ```bash
