@@ -117,11 +117,67 @@ Feature modules come from the package's `/module` subpath (`@chamvi/github/modul
 
 Folder agents are optional next to the code agents: put a default-exported agent in `agents/<name>/agent.ts` (or the directory in `CHAMVI_AGENTS_DIR`), named like its folder. The app loads and watches them in start mode.
 
-### Approved local skills
+### Approved skills (optional)
 
-After upgrading to a chamvi release that exports `hashSkillBundle` and `loadSkillBundles`, an agent can opt into reviewed local instruction/reference bundles. Review each bundle, compute its digest with `hashSkillBundle` as a separate review step, and commit the exact name, version, absolute directory and SHA-256 pin in agent configuration. Build the catalog explicitly in the agent module, append `catalog.instructions` to its instructions and compose `catalog.tools` with its existing tools, checking for a `load_skill` name collision. Compute the expected digest during review, never dynamically from whatever files happen to be present at startup. The catalog exposes approved metadata initially; `load_skill` returns the selected body or reference through normal tool results. Existing tool policy and approvals still apply. See [approved local skills](https://chamvi.dev/guide/skills) for the complete API and supported passive file formats when that release and guide ship.
+After upgrading to a compatible chamvi release with first-class skills, install `@chamvi/skills` as a runtime
+dependency (`npm install @chamvi/skills`). This optional path requires Node >=22.20, so raise the app's current
+>=22.18 engine floor when adopting it. The unchanged starter does not enable skills or add this dependency.
+Import `gitSkills` from the skills main entry, with no `/module` subpath or app helper imports. Its factory does no I/O.
+Keep `src/index.ts` synchronous; startup owns preparation:
 
-Bundle files are runtime assets. The starter Dockerfile copies compiled JavaScript and dependencies only, so explicitly copy your reviewed `approved-skills/` directory into the final image, for example with `COPY approved-skills ./approved-skills` in the runtime stage, and configure the bundle's absolute runtime path under `/app/approved-skills/`. Keep files readable by uid 1000. External bundle edits are not automatically watched; changed bytes under an old pin fail after restart. Upgrade the reviewed files and pin together and rebuild the image. Repository files and issue text cannot add approved skills or grant tools; chamvi does not automatically discover or install bundles.
+```ts
+import { createApp, defineAgent } from '@chamvi/app';
+import { gitSkills } from '@chamvi/skills';
+import { example } from './agents/example.ts';
+import { modules } from './modules.ts';
+
+// Reviewed source/full commit and separate approved name/version/sha256 arrays, defined by your app.
+const common = gitSkills({
+    source: reviewedSource,
+    revision: reviewedFullCommit,
+    directory: '/tmp/chamvi-skills/common',
+    approved: reviewedCommonPins,
+});
+const extras = gitSkills({
+    source: reviewedSource,
+    revision: reviewedFullCommit,
+    directory: '/tmp/chamvi-skills/maintainer',
+    approved: reviewedMaintainerPins,
+});
+const maintainer = defineAgent({
+    name: 'maintainer', instructions: 'Maintain the approved repository.', skills: [extras],
+});
+export default createApp({
+    model: 'anthropic/claude-sonnet-5-5', agents: [example, maintainer], modules, skills: [common],
+});
+```
+
+App skills apply to every code/folder agent; agent skills add scoped extras. Chamvi appends metadata and provides
+`load_skill` automatically. Existing tool policy/approval hooks still apply. Review every bundle and pin both its full
+source commit and independent content digest. `hashSkillBundle` from `@chamvi/skills` is a separate review aid,
+never approval; do not compute an expected digest dynamically from startup files.
+
+Globals and code-agent sources prepare before `engineCreated`; folder-agent extras prepare later, before serving.
+Verification failure prevents channels, HTTP and model runs, including `run-job`. `chamvi start --check` validates
+static skill configuration but does not load providers, install sources or verify remote content/availability.
+
+Runtime source preparation needs Git (absent from the current base image), source credentials/network and writable
+managed directories in both the app and every CronJob. Use separate `/tmp/chamvi-skills/*` corpora with the chart's
+uid 1000 and writable `/tmp`; `/app` remains read-only. See the [runtime image recipe](.agents/deployment.md#optional-skills)
+and allow startup-probe time for migrations, cloning and verification. Stop owns cleanup and may wait for a clone
+that ignores cancellation, so size CLI force-exit and pod termination grace accordingly.
+
+For prebuilt local snapshots instead, add a final-stage `COPY approved-skills ./approved-skills`, keep files readable
+by uid 1000, and pass `loadSkillBundle({ name, version, sha256, directory: '/app/approved-skills/audit' })` in `skills`.
+All bundle helpers come from `@chamvi/skills`. Manual `loadSkillBundles` catalogs remain supported with explicit
+instruction/tool composition and collision checks. The default Dockerfile copies JS/dependencies only.
+
+Upgrade reviewed source commits/content pins together. Saved load results retain original checkpoint bytes;
+pending/future loads use the new verified snapshot. Global-only edits do not change folder revisions, while tracked
+agent extra-pin edits follow existing revision cancellation. Finish or cancel unsettled runs first if mixed-version
+disclosure is unacceptable. External bundle directories are not watched; changed bytes under an old pin fail on
+restart. Repository files and issue text cannot approve skills or grant tools/scripts/permissions.
+See [approved skills](https://chamvi.dev/guide/skills) for formats and the complete API.
 
 ## Test
 
