@@ -86,7 +86,7 @@ content verification; migrate also skips preparation. A clean preflight does not
 
 Alternatively, include reviewed ready bundles with an explicit runtime-stage `COPY approved-skills ./approved-skills`
 (the Dockerfile otherwise copies only JS/dependencies), readable by uid 1000, and pass
-`loadSkillBundle({ name, version, sha256, directory: '/app/approved-skills/audit' })` in the app/agent `skills` array.
+`loadSkillBundle({ name, version, hash, directory: '/app/approved-skills/audit' })` in the app/agent `skills` array.
 Manual catalogs remain supported. Review content and full source commit separately; computing `hashSkillBundle` is
 never approval. Source/bundle directories are not watched. Change reviewed commits/bytes/content pins together:
 saved results keep old checkpoint bytes, pending/future loads use the new snapshot. Global changes alone do not

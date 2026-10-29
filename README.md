@@ -131,7 +131,7 @@ import { gitSkills } from '@chamvi/skills';
 import { example } from './agents/example.ts';
 import { modules } from './modules.ts';
 
-// Reviewed source/full commit and separate approved name/version/sha256 arrays, defined by your app.
+// Reviewed source/full commit and separate approved name/version/hash arrays, defined by your app.
 const common = gitSkills({
     source: reviewedSource,
     revision: reviewedFullCommit,
@@ -168,7 +168,7 @@ and allow startup-probe time for migrations, cloning and verification. Stop owns
 that ignores cancellation, so size CLI force-exit and pod termination grace accordingly.
 
 For prebuilt local snapshots instead, add a final-stage `COPY approved-skills ./approved-skills`, keep files readable
-by uid 1000, and pass `loadSkillBundle({ name, version, sha256, directory: '/app/approved-skills/audit' })` in `skills`.
+by uid 1000, and pass `loadSkillBundle({ name, version, hash, directory: '/app/approved-skills/audit' })` in `skills`.
 All bundle helpers come from `@chamvi/skills`. Manual `loadSkillBundles` catalogs remain supported with explicit
 instruction/tool composition and collision checks. The default Dockerfile copies JS/dependencies only.
 
