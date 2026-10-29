@@ -16,11 +16,11 @@
         "lint:fix": "npm run lint -- --fix"
     },
     "dependencies": {
-        "@ai-sdk/anthropic": "^4.0.85",
+        "@ai-sdk/anthropic": "^4.0.89",
         "@chamvi/app": "^0.3.1",
         "@chamvi/cli": "^0.3.1",
         "@chamvi/ui": "^0.3.1",
-        "ai": "^7.0.150",
+        "ai": "^7.0.154",
         "pg": "^8",
         "typeorm": "^1.1.2",
         "zod": "^4.1.8"
