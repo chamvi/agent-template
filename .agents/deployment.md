@@ -42,6 +42,12 @@ First-class skills require a compatible chamvi release and a runtime `@chamvi/sk
 `loadSkillBundle` and review helpers from its main entry, never a skills `/module` or app helper export. Keep the
 entry synchronous: `gitSkills` only describes a source and startup installs/verifies it. App `skills` supplies defaults
 for every code/folder agent; agent `skills` adds scoped extras. No manual tool/instruction composition is needed.
+Skill types, validation, catalogs, source caches/fingerprints and scoped `load_skill` belong to skills; core owns the
+generic preparation/cancellation contract and ordinary contributed-tool execution. Core/app have no skills dependency,
+and the main entry remains app-free. Built-in factories carry the runtime without module registration. Custom raw
+values/loaders use `defineSkill`/`defineSkillSource` from skills; custom loaders own retrieval and pin verification.
+Runtime ownership was rechecked against monorepo `de1f72e8` (2026-10-30); this does not change the starter's
+runtime dependencies, Dockerfile, manifests or embedded agent fixture.
 
 When adopting Git sources, raise the starter's Node >=22.18 floor to >=22.20. The current runtime base uses Node 24
 but has no Git. Insert this immediately after the existing pinned final `FROM ghcr.io/chamvi/node:24@sha256:...`:

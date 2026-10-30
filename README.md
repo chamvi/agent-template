@@ -123,7 +123,10 @@ After upgrading to a compatible chamvi release with first-class skills, install 
 dependency (`npm install @chamvi/skills`). This optional path requires Node >=22.20, so raise the app's current
 >=22.18 engine floor when adopting it. The unchanged starter does not enable skills or add this dependency.
 Import `gitSkills` from the skills main entry, with no `/module` subpath or app helper imports. Its factory does no I/O.
-Keep `src/index.ts` synchronous; startup owns preparation:
+Skills owns its data types, validation, catalogs and scoped `load_skill`; core coordinates preparation/cancellation,
+and app forwards configuration without depending on skills. Factory values carry the runtime automatically, with
+no module registration. Custom raw values/loaders use `defineSkill`/`defineSkillSource` from `@chamvi/skills`;
+custom loaders own retrieval and reviewed-pin verification. Keep `src/index.ts` synchronous; startup owns preparation:
 
 ```ts
 import { createApp, defineAgent } from '@chamvi/app';
