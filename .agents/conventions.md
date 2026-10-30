@@ -30,3 +30,10 @@ Commit messages use Conventional Commits. No AI attribution or em dashes in comm
 ## Documentation
 
 Update README for user-facing behavior and these guides for layout/testing/deployment changes. Document only commands that exist now.
+
+Structured instruction compatibility (unreleased, 2026-10-30): monorepo `packages/core/src/message/types.ts`
+exports native SDK message/content aliases, `agent/types.ts` exposes string-or-readonly-array `AgentInstructions`,
+and `packages/app/src/core/index.ts` re-exports core. README guidance uses the existing app import boundary.
+`engine/execute/module.ts` keeps configured prefixes transient across approvals; skills runtime metadata uses a
+separate system block while standalone catalog instructions remain strings. The starter agent, dependencies,
+fixtures, CLI/env, image and deployment values require no changes.
