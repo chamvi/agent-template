@@ -117,6 +117,14 @@ Feature modules come from the package's `/module` subpath (`@chamvi/github/modul
 
 Folder agents are optional next to the code agents: put a default-exported agent in `agents/<name>/agent.ts` (or the directory in `CHAMVI_AGENTS_DIR`), named like its folder. The app loads and watches them in start mode.
 
+Agent `instructions` also accept ordered native system/user/assistant arrays after upgrading to a compatible
+chamvi release. `AgentInstructions`, `SystemModelMessage`, `UserModelMessage`, `AssistantModelMessage` and native
+content types are exported by core and re-exported through `@chamvi/app`, so this app keeps using its existing
+imports. System content is a string; user/assistant content keeps the SDK's role-specific multipart types and provider
+options. Configured blocks retain their order before the run transcript and stay out of checkpoints, including after
+approval resumes. See the [typed instructions example](https://chamvi.dev/guide/agents#instructions). The starter's
+string instructions remain compatible.
+
 ### Approved skills (optional)
 
 After upgrading to a compatible chamvi release with first-class skills, install `@chamvi/skills` as a runtime
@@ -156,8 +164,9 @@ export default createApp({
 ```
 
 App skills apply to every code/folder agent; agent skills add scoped extras. Chamvi appends metadata and provides
-`load_skill` automatically. Existing tool policy/approval hooks still apply. Review every bundle and pin both its full
-source commit and independent content digest. `hashSkillBundle` from `@chamvi/skills` is a separate review aid,
+`load_skill` automatically. Catalog metadata is a separate system-message block after the configured instructions;
+manual `SkillCatalog.instructions` stays a string for explicit composition. Existing tool policy/approval hooks still
+apply. Review every bundle and pin both its full source commit and independent content digest. `hashSkillBundle` from `@chamvi/skills` is a separate review aid,
 never approval; do not compute an expected digest dynamically from startup files.
 
 Globals and code-agent sources prepare before `engineCreated`; folder-agent extras prepare later, before serving.
