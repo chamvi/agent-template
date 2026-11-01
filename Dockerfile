@@ -13,7 +13,7 @@ RUN npx chamvi build && npm prune --omit=dev \
     && { npm ls --omit=dev --all --parseable --long 2>/dev/null || true; } \
         | grep ':EXTRANEOUS$' | cut -d: -f1 | xargs -r rm -rf
 
-FROM ghcr.io/chamvi/node:24@sha256:07e17a3b18e0d22bb5ab36b23ad7dd473b97b27b64580e1997e01484c94300b4
+FROM ghcr.io/chamvi/node:24@sha256:25f439842e0277c8adc0e5025027809fe6ca33638a4cbbd91f0ff816c31a8b24
 COPY --from=build /app/package.json ./
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/node_modules ./node_modules
