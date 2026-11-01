@@ -2,7 +2,7 @@
 
 ## Pipeline
 
-`.github/workflows/ci.yml` runs on pull requests, pushes to `main` and `v*` tags: `check` (lint, typecheck, test on Node 22 and 24), `workflows` (actionlint, shellcheck), `docker` (`docker build` plus `scripts/image-smoke.sh`), `deploy` (kubeconform against the Flux v2.9.6 CRD schemas, `helm template` of `oci://ghcr.io/chamvi/helm/agent-app` with the release and kind values), then on a push `image`: `tada5hi/craneship@v4` pushes `ghcr.io/<owner>/<repo>` for linux/amd64 and linux/arm64 with the tags `scripts/image-tags.sh` prints (`main-<sha7>-<commit unix ts>` on `main`, `<semver>` on `v<semver>`; `gitTag: 'false'`, so the script is the only tag source). Only that job has `packages: write`.
+`.github/workflows/ci.yml` runs on pull requests, pushes to `main` and `v*` tags: `check` (lint, typecheck, test on Node 24.3.0 (the minimum) and latest 24), `workflows` (actionlint, shellcheck), `docker` (`docker build` plus `scripts/image-smoke.sh`), `deploy` (kubeconform against the Flux v2.9.6 CRD schemas, `helm template` of `oci://ghcr.io/chamvi/helm/agent-app` with the release and kind values), then on a push `image`: `tada5hi/craneship@v4` pushes `ghcr.io/<owner>/<repo>` for linux/amd64 and linux/arm64 with the tags `scripts/image-tags.sh` prints (`main-<sha7>-<commit unix ts>` on `main`, `<semver>` on `v<semver>`; `gitTag: 'false'`, so the script is the only tag source). Only that job has `packages: write`.
 
 ## Process and Environment
 

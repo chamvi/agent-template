@@ -22,7 +22,7 @@ GitHub does not substitute names. In your new checkout:
 grep -rln 'agent-template' . --exclude-dir=node_modules --exclude-dir=.git
 ```
 
-Use Node **22.18 or newer** (Node 24 is in `.nvmrc`) and npm. This is an ESM application, not an npm library. `package-lock.json` is committed and resolves every package from `https://registry.npmjs.org/` (`test/unit/lockfile.spec.ts` checks it), so CI and the image build use `npm ci`.
+Use Node **24.3.0 or newer** (Node 24 is in `.nvmrc`) and npm. This is an ESM application, not an npm library. `package-lock.json` is committed and resolves every package from `https://registry.npmjs.org/` (`test/unit/lockfile.spec.ts` checks it), so CI and the image build use `npm ci`.
 
 ## Develop
 
@@ -138,7 +138,7 @@ The Dockerfile builds with `npm ci` and `chamvi build` on `node:24-trixie-slim`,
 
 Outside Docker, `npm run build` writes `dist/index.mjs` with every dependency external and `npm run start` runs it with the process environment (it does not read `.env`).
 
-CI (`.github/workflows/ci.yml`) runs lint, typecheck and test on Node 22 and 24, actionlint and shellcheck, the Docker smoke and the Flux validation, then pushes the image with [craneship](https://github.com/tada5hi/craneship) for linux/amd64 and linux/arm64:
+CI (`.github/workflows/ci.yml`) runs lint, typecheck and test on Node 24.3.0 (the minimum) and latest 24, actionlint and shellcheck, the Docker smoke and the Flux validation, then pushes the image with [craneship](https://github.com/tada5hi/craneship) for linux/amd64 and linux/arm64:
 
 | Ref | Tag (`scripts/image-tags.sh`) |
 |---|---|

@@ -16,7 +16,7 @@ npm run typecheck
 npm run lint
 ```
 
-- **Node.js:** >=22.18.0; `.nvmrc` selects 24.
+- **Node.js:** >=24.3.0; `.nvmrc` selects 24.
 - **Package manager:** npm, no workspaces or nx.
 - **CLI:** installed `@chamvi/cli`, bin `chamvi`.
 - **Build:** `chamvi build` to `dist/index.mjs`, dependencies external.

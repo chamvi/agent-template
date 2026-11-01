@@ -2,7 +2,7 @@
 
 ## Tooling and Style
 
-- Single-package ESM app, Node >=22.18.0, npm.
+- Single-package ESM app, Node >=24.3.0, npm.
 - TypeScript 6 extends `@tada5hi/tsconfig`; `noEmit`, `allowImportingTsExtensions` and `erasableSyntaxOnly` are enabled. Relative imports include `.ts`. No enum, parameter property or namespace syntax.
 - ESLint 10 uses `@tada5hi/eslint-config`; run `npm run lint:fix` before manual formatting changes.
 - Four-space indentation, LF, single quotes and semicolons. `.editorconfig` is authoritative for whitespace.
