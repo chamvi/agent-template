@@ -36,6 +36,69 @@ Coordinate the pod termination grace period with readiness delay, engine drain, 
 
 The image builds on `node:24-trixie-slim` and runs on `ghcr.io/chamvi/node:24` pinned by digest (Dependabot's docker updates move it): tini, uid 1000, `/app`, `CMD node node_modules/@chamvi/cli/dist/cli.mjs start`. It writes nothing outside `/tmp`, so it runs with a read-only root, as the chart requires; `scripts/image-smoke.sh` checks that and exit code 0 on `docker stop`.
 
+### Optional skills
+
+First-class skills require a compatible chamvi release and a runtime `@chamvi/skills` dependency. Import `gitSkills`,
+`loadSkillBundle` and review helpers from its main entry, never a skills `/module` or app helper export. Keep the
+entry synchronous: `gitSkills` only describes a source and startup installs/verifies it. App `skills` supplies defaults
+for every code/folder agent; agent `skills` adds scoped extras. No manual tool/instruction composition is needed.
+Skill types, validation, catalogs, source caches/fingerprints and scoped `load_skill` belong to skills; core owns the
+generic preparation/cancellation contract and ordinary contributed-tool execution. Core/app have no skills dependency,
+and the main entry remains app-free. Built-in factories carry the runtime without module registration. Custom raw
+values/loaders use `defineSkill`/`defineSkillSource` from skills; custom loaders own retrieval and pin verification.
+Runtime ownership was rechecked against monorepo `de1f72e8` (2026-10-30); this does not change the starter's
+runtime dependencies, Dockerfile, manifests or embedded agent fixture.
+
+When adopting Git sources, raise the starter's Node >=22.18 floor to >=22.20. The current runtime base uses Node 24
+but has no Git. Insert this immediately after the existing pinned final `FROM ghcr.io/chamvi/node:24@sha256:...`:
+
+```dockerfile
+USER root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/*
+USER 1000:1000
+# Keep the existing runtime COPY, EXPOSE and CMD instructions below.
+```
+
+Use absolute distinct managed directories `/tmp/chamvi-skills/common` and `/tmp/chamvi-skills/maintainer` in
+`gitSkills`; uid 1000 can write them on the existing `/tmp` mount with the root read-only. `/app` cannot be a
+startup destination. Every pod/CronJob prepares its own corpus, with verification again on restart even when
+emptyDir survives. The chart needs no new mount, env variable or RBAC. Private source credentials/network must work
+from the app and every CronJob, not just sandbox pods. envFrom Secrets are available, but a generic Git token
+variable does not guarantee the clone SDK consumes it; validate the configured source/auth flow. Sandbox egress
+policies select sandbox pods only, so external app policies must permit DNS and source/auth endpoints.
+
+Required preparation completes before HTTP starts; `/healthz` stays unavailable until then. Set the existing chart
+values in both your Flux/kind deployment configuration as needed, based on measured migrations + fetch + verification:
+
+```yaml
+probes:
+    startup:
+        periodSeconds: 2
+        timeoutSeconds: 2
+        failureThreshold: 150
+```
+
+That example permits approximately 300 seconds. CronJobs have no HTTP startup probe but still need runtime Git,
+credentials/network and writable paths for `run-job`. The default starter smoke fixture does not enable remote
+skills; its timeout is unchanged. If you enable remote skills in an image smoke fixture, adjust its wait budget too.
+Stop joins source cleanup, including a clone that may ignore cancellation; CLI force-exit and pod grace are the
+operator bounds. There is no guaranteed fast shutdown during a clone.
+
+Globals/code sources verify before `engineCreated`; folder extras verify later before serving. Verification failure
+prevents HTTP/channels/model work. `start --check` is read-only and skips skill providers, installation and remote
+content verification; migrate also skips preparation. A clean preflight does not establish source availability.
+
+Alternatively, include reviewed ready bundles with an explicit runtime-stage `COPY approved-skills ./approved-skills`
+(the Dockerfile otherwise copies only JS/dependencies), readable by uid 1000, and pass
+`loadSkillBundle({ name, version, hash, directory: '/app/approved-skills/audit' })` in the app/agent `skills` array.
+Manual catalogs remain supported. Review content and full source commit separately; computing `hashSkillBundle` is
+never approval. Source/bundle directories are not watched. Change reviewed commits/bytes/content pins together:
+saved results keep old checkpoint bytes, pending/future loads use the new snapshot. Global changes alone do not
+change folder revisions; finish/cancel unsettled runs before an upgrade if mixed-version disclosure is unacceptable.
+Tracked agent extras retain existing revision cancellation behavior.
+
 The Flux source is `oci://ghcr.io/chamvi/helm/agent-app` (`>=0.1.0 <0.2.0`). Rename app/release identifiers, namespace, image, image-policy markers and the kind values' Secret name consistently; `test/unit/deploy.spec.ts` derives every expected name from the manifests, so a consistent rename passes. The release sets only keys of the chart's `values.yaml`; the chart owns `PORT`, `CHAMVI_BASE_PATH` (its `basePath` value) and, with `cronJobs`, `CHAMVI_SCHEDULER=false`. Main-branch tags are selected by their numeric timestamp, release tags by semver. Image automation belongs in the fleet repository.
 
 New GHCR images are private by default. A private image needs credentials for both Flux scanning (`ImageRepository.spec.secretRef`) and pod pulls (`imagePullSecrets`). The `ghcr.io/chamvi/*` images and the chart need no pull secrets.
