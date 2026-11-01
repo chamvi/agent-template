@@ -20,6 +20,7 @@ beforeAll(async () => {
     const port = await freePort();
     base = `http://127.0.0.1:${port}`;
     app = createApp({
+        model: 'anthropic/claude-sonnet-5-5',
         agents: [example],
         modules,
         models: fakeModels(fakeModel([

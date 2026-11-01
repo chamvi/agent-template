@@ -78,7 +78,6 @@ export const countWords = defineTool({
 
 export const example = defineAgent({
     name: 'example',
-    model: EXAMPLE_MODEL,
     instructions: 'Summarize the supplied text in one sentence. Call count_words on the text first and state the word count in your answer.',
     channels: [
         http.on({ schema: z.object({ text: z.string().min(1).max(10_000) }) }),
@@ -92,13 +91,15 @@ export const example = defineAgent({
 });
 ```
 
-The model is told to call `count_words` before it summarizes. The tool counts non-empty whitespace-separated words. The cron subscription (id `cron:0 8 * * 1`) fires at 08:00 on Mondays in `Europe/Berlin`, following its daylight-saving changes. Model ids are `<provider>/<model>`, with a slash; the Anthropic provider reads `ANTHROPIC_API_KEY`.
+The model is told to call `count_words` before it summarizes. The tool counts non-empty whitespace-separated words. The cron subscription (id `cron:0 8 * * 1`) fires at 08:00 on Mondays in `Europe/Berlin`, following its daylight-saving changes. Model ids are `<provider>/<model>`, split at the first slash; `ANTHROPIC_API_KEY` configures the `anthropic` provider. An agent without `model` uses the app default `CHAMVI_MODEL`, and further providers (a second key, a self-hosted OpenAI-compatible router) are declared with `CHAMVI_PROVIDER_<NAME>_*` or a `chamvi.json`; see `.env.example` and [Pick a Model](https://chamvi.dev/guide/models). `npm run build && npx chamvi start --check` checks the settings, the store connection and every agent without starting anything.
 
 ## Add an agent / add a module
 
 1. Add `src/agents/<name>.ts`, exporting a `defineAgent(...)` result with a unique kebab-case name.
 2. Import it in `src/index.ts` and append it to the `agents` array.
 3. Add a test with the fake model (see Test).
+
+The app entry sets `createApp({ model: 'anthropic/claude-sonnet-5-5', agents: [example], modules })`. Agents inherit this default unless they explicitly set their own model. `CHAMVI_MODEL` overrides the app default, so deployments can choose a model without editing the agent. Run `chamvi start --check` after building to validate configuration without starting the server or calling a model.
 
 Import the agent API from `@chamvi/app`, not `@chamvi/core` or `orkos`. Relative imports carry `.ts`, and `src/index.ts` stays a synchronous `export default createApp(...)` that starts nothing.
 
@@ -133,7 +134,7 @@ docker build -t agent-template:local .
 sh scripts/image-smoke.sh agent-template:local
 ```
 
-The Dockerfile builds with `npm ci` and `chamvi build` on `node:24-trixie-slim`, then copies `package.json`, `dist/` and the production `node_modules/` (minus the build toolchain and its dependencies, which `npm prune --omit=dev` keeps because of `@chamvi/cli`'s optional `tsdown` peer) onto `ghcr.io/chamvi/node:24` (pinned by digest; tini, uid 1000, `/app`). `scripts/image-smoke.sh` fails when the image ships the toolchain or any package `npm ls` reports as extraneous, runs it the way the chart does (read-only root, a `/tmp` tmpfs, uid 1000), waits for `/readyz` and `/ui/`, and checks that `docker stop` ends it with exit code 0. The CI `docker` job runs the same script.
+The Dockerfile builds with `npm ci` and `chamvi build` on `node:24-trixie-slim`, then copies `package.json`, `dist/` and the production `node_modules/` (minus the build toolchain and its dependencies, which `npm prune --omit=dev` keeps because of `@chamvi/cli`'s optional `tsdown` peer) onto `ghcr.io/chamvi/node:24` (pinned by digest; tini, uid 1000, `/app`). `scripts/image-smoke.sh` fails when the image ships the toolchain or any package `npm ls` reports as extraneous, runs it the way the chart does (read-only root, a `/tmp` tmpfs, uid 1000), waits for `/readyz` and `/ui/`, and checks that `docker stop` ends it with exit code 0. The CI `docker` job runs the same script. The image holds no `chamvi.json`: copy yours in with another `COPY`, or mount it and set `CHAMVI_CONFIG_FILE`.
 
 Outside Docker, `npm run build` writes `dist/index.mjs` with every dependency external and `npm run start` runs it with the process environment (it does not read `.env`).
 
