@@ -117,8 +117,7 @@ Feature modules come from the package's `/module` subpath (`@chamvi/github/modul
 
 Folder agents are optional next to the code agents: put a default-exported agent in `agents/<name>/agent.ts` (or the directory in `CHAMVI_AGENTS_DIR`), named like its folder. The app loads and watches them in start mode.
 
-Agent `instructions` also accept ordered native system/user/assistant arrays after upgrading to a compatible
-chamvi release. `AgentInstructions`, `SystemModelMessage`, `UserModelMessage`, `AssistantModelMessage` and native
+Agent `instructions` also accept ordered native system/user/assistant arrays (since chamvi 0.4). `AgentInstructions`, `SystemModelMessage`, `UserModelMessage`, `AssistantModelMessage` and native
 content types are exported by core and re-exported through `@chamvi/app`, so this app keeps using its existing
 imports. System content is a string; user/assistant content keeps the SDK's role-specific multipart types and provider
 options. Configured blocks retain their order before the run transcript and stay out of checkpoints, including after
@@ -127,9 +126,11 @@ string instructions remain compatible.
 
 ### Approved skills (optional)
 
-After upgrading to a compatible chamvi release with first-class skills, install `@chamvi/skills` as a runtime
-dependency (`npm install @chamvi/skills`). This optional path requires Node >=22.20, so raise the app's current
->=22.18 engine floor when adopting it. The unchanged starter does not enable skills or add this dependency.
+Since chamvi 0.4, install `@chamvi/skills` as a runtime dependency (`npm install @chamvi/skills`) to use
+first-class skills. The unchanged starter does not enable skills or add this dependency.
+`@chamvi/skills` 0.4 depends on a pinned Git URL (a fork of the Skills SDK, [chamvi#97](https://github.com/chamvi/chamvi/issues/97)),
+so `test/unit/lockfile.spec.ts` fails once you add it, and registry-only proxies refuse the install. Allow that
+one entry in the spec (or set `CHAMVI_SKIP_LOCKFILE=1`) after reviewing it.
 Import `gitSkills` from the skills main entry, with no `/module` subpath or app helper imports. Its factory does no I/O.
 Skills owns its data types, validation, catalogs and scoped `load_skill`; core coordinates preparation/cancellation,
 and app forwards configuration without depending on skills. Factory values carry the runtime automatically, with
@@ -170,7 +171,9 @@ apply. Review every bundle and pin both its full source commit and independent c
 never approval; do not compute an expected digest dynamically from startup files.
 
 Globals and code-agent sources prepare before `engineCreated`; folder-agent extras prepare later, before serving.
-Verification failure prevents channels, HTTP and model runs, including `run-job`. `chamvi start --check` validates
+A failure of an app-wide or code-agent skill aborts startup before channels, HTTP and model runs. A folder agent
+whose preparation fails becomes an agent issue: it is not registered, the other agents start and polling retries it
+with backoff; a `run-job` of that agent exits 1 (retryable) or 2 (configuration). `chamvi start --check` validates
 static skill configuration but does not load providers, install sources or verify remote content/availability.
 
 Runtime source preparation needs Git (absent from the current base image), source credentials/network and writable
@@ -261,6 +264,19 @@ Set `CHAMVI_PUBLIC_URL` to the public origin only (with the ingress enabled and 
 Pick one scheduler: the app fires its cron subscriptions, or the chart's `cronJobs` value runs `chamvi run-job example 'cron:0 8 * * 1'` as a Kubernetes CronJob and sets `CHAMVI_SCHEDULER=false` on the app (commented in `release.yaml`). Jobs and the app must share one database. A failed `chamvi run-job` prints only `<agent>: failed (run <id>)` and exits 1; the run's error stays on the stored run, readable in the dashboard or `GET /runs/<id>` only when the Secret carries `DATABASE_URL` (in memory it is gone with the job's pod).
 
 The environment variables are listed in the [app reference](https://chamvi.dev/reference/app#environment). A missing provider key stops `chamvi start` with exit code 2, so `/readyz` never turns green.
+
+## Upgrading chamvi
+
+Bump `@chamvi/app`, `@chamvi/cli` and `@chamvi/ui` together, then refresh the lockfile with `npm install`.
+For 0.3 to 0.4 (see [Upgrading to 0.4](https://chamvi.dev/guide/upgrading#upgrading-to-0-4)):
+
+- Node >=24.3.0 is required, in CI and in the image (the pinned `ghcr.io/chamvi/node:24` already is).
+- Remove `CHAMVI_GIT_CREDENTIAL_MODE` from your environment: 0.4 refuses it at startup.
+- Runs started by the GitHub channel or a webhook are untrusted: outbound GitHub tools and `git_push` wait for an
+  approval in them unless an agent opts a tool out with `trust.tools`.
+- The upgrade needs downtime. Never let 0.3 and 0.4 processes share the database: suspend the chart's `cronJobs`
+  and wait for running jobs, scale the app to 0 and wait for its pods to exit, run `chamvi migrate` once with the
+  new image (or start it with the default `CHAMVI_MIGRATE=true`), then start only 0.4 and resume the CronJobs.
 
 ## Images are private by default
 

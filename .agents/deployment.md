@@ -32,13 +32,17 @@ Use one scheduling strategy: the running app's cron channel or chart `cronJobs` 
 
 Coordinate the pod termination grace period with readiness delay, engine drain, server close and CLI force-exit settings. On SIGTERM, readiness fails, intake/schedules stop, executions drain, then storage closes. `test/unit/cli.spec.ts` (the CLI) and `scripts/image-smoke.sh` (the image, through tini) verify exit 0 on SIGTERM; the drain inside a pod's grace period and restart recovery need a cluster (the README's "Try it on kind" steps).
 
+Upgrading chamvi across a minor (0.3 to 0.4) needs downtime when the store is shared: suspend the CronJobs and wait for running jobs, scale the app to 0 and wait for exit, migrate once with the new image, then start only new processes and resume the CronJobs. Old and new processes must never share the database (an old approval poller can post a new run's private approval body to its source channel; an old worker writes runs the one-time taint backfill never sees). See the README's "Upgrading chamvi" section.
+
 ## Image and Flux
 
 The image builds on `node:24-trixie-slim` and runs on `ghcr.io/chamvi/node:24` pinned by digest (Dependabot's docker updates move it): tini, uid 1000, `/app`, `CMD node node_modules/@chamvi/cli/dist/cli.mjs start`. It writes nothing outside `/tmp`, so it runs with a read-only root, as the chart requires; `scripts/image-smoke.sh` checks that and exit code 0 on `docker stop`.
 
 ### Optional skills
 
-First-class skills require a compatible chamvi release and a runtime `@chamvi/skills` dependency. Import `gitSkills`,
+First-class skills (chamvi 0.4+) require a runtime `@chamvi/skills` dependency. It depends on a pinned Git URL
+([chamvi#97](https://github.com/chamvi/chamvi/issues/97)), so adopting it means allowing that entry in
+`test/unit/lockfile.spec.ts`. Import `gitSkills`,
 `loadSkillBundle` and review helpers from its main entry, never a skills `/module` or app helper export. Keep the
 entry synchronous: `gitSkills` only describes a source and startup installs/verifies it. App `skills` supplies defaults
 for every code/folder agent; agent `skills` adds scoped extras. No manual tool/instruction composition is needed.
@@ -46,11 +50,10 @@ Skill types, validation, catalogs, source caches/fingerprints and scoped `load_s
 generic preparation/cancellation contract and ordinary contributed-tool execution. Core/app have no skills dependency,
 and the main entry remains app-free. Built-in factories carry the runtime without module registration. Custom raw
 values/loaders use `defineSkill`/`defineSkillSource` from skills; custom loaders own retrieval and pin verification.
-Runtime ownership was rechecked against monorepo `de1f72e8` (2026-10-30); this does not change the starter's
-runtime dependencies, Dockerfile, manifests or embedded agent fixture.
+Adopting skills does not change the starter's runtime dependencies, Dockerfile, manifests or embedded agent
+fixture until you opt in.
 
-When adopting Git sources, raise the starter's Node >=22.18 floor to >=22.20. The current runtime base uses Node 24
-but has no Git. Insert this immediately after the existing pinned final `FROM ghcr.io/chamvi/node:24@sha256:...`:
+The runtime base (Node 24) has no Git. When adopting Git sources, insert this immediately after the existing pinned final `FROM ghcr.io/chamvi/node:24@sha256:...`:
 
 ```dockerfile
 USER root
@@ -86,8 +89,9 @@ skills; its timeout is unchanged. If you enable remote skills in an image smoke 
 Stop joins source cleanup, including a clone that may ignore cancellation; CLI force-exit and pod grace are the
 operator bounds. There is no guaranteed fast shutdown during a clone.
 
-Globals/code sources verify before `engineCreated`; folder extras verify later before serving. Verification failure
-prevents HTTP/channels/model work. `start --check` is read-only and skips skill providers, installation and remote
+Globals/code sources verify before `engineCreated`; folder extras verify later before serving. A global or
+code-agent failure prevents HTTP/channels/model work; a folder agent's failure is an agent issue retried with
+backoff while the other agents start. `start --check` is read-only and skips skill providers, installation and remote
 content verification; migrate also skips preparation. A clean preflight does not establish source availability.
 
 Alternatively, include reviewed ready bundles with an explicit runtime-stage `COPY approved-skills ./approved-skills`
