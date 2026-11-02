@@ -22,7 +22,7 @@ GitHub does not substitute names. In your new checkout:
 grep -rln 'agent-template' . --exclude-dir=node_modules --exclude-dir=.git
 ```
 
-Use Node **24.3.0 or newer** (Node 24 is in `.nvmrc`) and npm. This is an ESM application, not an npm library. `package-lock.json` is committed and resolves every package from `https://registry.npmjs.org/` (`test/unit/lockfile.spec.ts` checks it), so CI and the image build use `npm ci`.
+Use Node **26.0.0 or newer** (Node 26 is in `.nvmrc`) and npm. This is an ESM application, not an npm library. `package-lock.json` is committed and resolves every package from `https://registry.npmjs.org/` (`test/unit/lockfile.spec.ts` checks it), so CI and the image build use `npm ci`.
 
 ## Develop
 
@@ -211,11 +211,11 @@ docker build -t agent-template:local .
 sh scripts/image-smoke.sh agent-template:local
 ```
 
-The Dockerfile builds with `npm ci` and `chamvi build` on `node:24-trixie-slim`, then copies `package.json`, `dist/` and the production `node_modules/` (minus the build toolchain and its dependencies, which `npm prune --omit=dev` keeps because of `@chamvi/cli`'s optional `tsdown` peer) onto `ghcr.io/chamvi/node:24` (pinned by digest; tini, uid 1000, `/app`). `scripts/image-smoke.sh` fails when the image ships the toolchain or any package `npm ls` reports as extraneous, runs it the way the chart does (read-only root, a `/tmp` tmpfs, uid 1000), waits for `/readyz` and `/ui/`, and checks that `docker stop` ends it with exit code 0. The CI `docker` job runs the same script. The image holds no `chamvi.json`: copy yours in with another `COPY`, or mount it and set `CHAMVI_CONFIG_FILE`.
+The Dockerfile builds with `npm ci` and `chamvi build` on `node:26-trixie-slim`, then copies `package.json`, `dist/` and the production `node_modules/` (minus the build toolchain and its dependencies, which `npm prune --omit=dev` keeps because of `@chamvi/cli`'s optional `tsdown` peer) onto `ghcr.io/chamvi/node:26` (pinned by digest; tini, uid 1000, `/app`). `scripts/image-smoke.sh` fails when the image ships the toolchain or any package `npm ls` reports as extraneous, runs it the way the chart does (read-only root, a `/tmp` tmpfs, uid 1000), waits for `/readyz` and `/ui/`, and checks that `docker stop` ends it with exit code 0. The CI `docker` job runs the same script. The image holds no `chamvi.json`: copy yours in with another `COPY`, or mount it and set `CHAMVI_CONFIG_FILE`.
 
 Outside Docker, `npm run build` writes `dist/index.mjs` with every dependency external and `npm run start` runs it with the process environment (it does not read `.env`).
 
-CI (`.github/workflows/ci.yml`) runs lint, typecheck and test on Node 24.3.0 (the minimum) and latest 24, actionlint and shellcheck, the Docker smoke and the Flux validation, then pushes the image with [craneship](https://github.com/tada5hi/craneship) for linux/amd64 and linux/arm64:
+CI (`.github/workflows/ci.yml`) runs lint, typecheck and test on Node 26 (one job, no version matrix), actionlint and shellcheck, the Docker smoke and the Flux validation, then pushes the image with [craneship](https://github.com/tada5hi/craneship) for linux/amd64 and linux/arm64:
 
 | Ref | Tag (`scripts/image-tags.sh`) |
 |---|---|
@@ -268,9 +268,15 @@ The environment variables are listed in the [app reference](https://chamvi.dev/r
 ## Upgrading chamvi
 
 Bump `@chamvi/app`, `@chamvi/cli` and `@chamvi/ui` together, then refresh the lockfile with `npm install`.
+For 0.4 to 0.5 (see [Upgrading to 0.5](https://chamvi.dev/guide/upgrading#upgrading-to-0-5)):
+
+- Node >=26.0.0 is required, in CI and in the image: move the build stage to `node:26-trixie-slim` and the runtime
+  to `ghcr.io/chamvi/node:26` pinned by digest (this template already does). The `24` tag is not rebuilt anymore.
+- No store migration ships, so the upgrade needs no downtime.
+
 For 0.3 to 0.4 (see [Upgrading to 0.4](https://chamvi.dev/guide/upgrading#upgrading-to-0-4)):
 
-- Node >=24.3.0 is required, in CI and in the image (the pinned `ghcr.io/chamvi/node:24` already is).
+- Node >=24.3.0 is required, in CI and in the image.
 - Remove `CHAMVI_GIT_CREDENTIAL_MODE` from your environment: 0.4 refuses it at startup.
 - Runs started by the GitHub channel or a webhook are untrusted: outbound GitHub tools and `git_push` wait for an
   approval in them unless an agent opts a tool out with `trust.tools`.

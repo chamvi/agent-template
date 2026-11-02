@@ -16,13 +16,13 @@ npm run typecheck
 npm run lint
 ```
 
-- **Node.js:** >=24.3.0; `.nvmrc` selects 24.
+- **Node.js:** >=26.0.0; `.nvmrc` selects 26.
 - **Package manager:** npm, no workspaces or nx.
 - **CLI:** installed `@chamvi/cli`, bin `chamvi`.
 - **Build:** `chamvi build` to `dist/index.mjs`, dependencies external.
 - **Environment:** set a real provider key only in the ignored `.env`; tests never need one. The sample token is local-only.
 - **Lockfile:** `package-lock.json` is committed and resolves only from `https://registry.npmjs.org/` (`test/unit/lockfile.spec.ts`); CI and the Dockerfile use `npm ci`.
-- **Image and deploy:** `Dockerfile` (two stages, `ghcr.io/chamvi/node:24` by digest), `scripts/image-smoke.sh`, `scripts/image-tags.sh`, Flux examples in `deploy/flux`.
+- **Image and deploy:** `Dockerfile` (two stages, `ghcr.io/chamvi/node:26` by digest), `scripts/image-smoke.sh`, `scripts/image-tags.sh`, Flux examples in `deploy/flux`.
 
 ## Working Rules
 

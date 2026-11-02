@@ -20,7 +20,7 @@ agent-template/
 │   ├── workflows/ci.yml         # Checks, workflow lint, Docker smoke, Flux validation, image push
 │   └── dependabot.yml           # npm, docker, github-actions
 ├── .agents/                     # Development and deployment guides (references/ for external projects)
-├── Dockerfile                   # Two stages, runtime on ghcr.io/chamvi/node:24 by digest
+├── Dockerfile                   # Two stages, runtime on ghcr.io/chamvi/node:26 by digest
 ├── .env.example                 # Local placeholders, optional env groups
 ├── package.json, package-lock.json
 ├── tsconfig.json                # Typechecking only, includes src and test
