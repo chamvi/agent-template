@@ -1,4 +1,4 @@
-FROM node:24-trixie-slim AS build
+FROM node:26-trixie-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -13,7 +13,7 @@ RUN npx chamvi build && npm prune --omit=dev \
     && { npm ls --omit=dev --all --parseable --long 2>/dev/null || true; } \
         | grep ':EXTRANEOUS$' | cut -d: -f1 | xargs -r rm -rf
 
-FROM ghcr.io/chamvi/node:24@sha256:25f439842e0277c8adc0e5025027809fe6ca33638a4cbbd91f0ff816c31a8b24
+FROM ghcr.io/chamvi/node:26
 COPY --from=build /app/package.json ./
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/node_modules ./node_modules

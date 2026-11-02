@@ -2,7 +2,7 @@
 
 ## Pipeline
 
-`.github/workflows/ci.yml` runs on pull requests, pushes to `main` and `v*` tags: `check` (lint, typecheck, test on Node 24.3.0 (the minimum) and latest 24), `workflows` (actionlint, shellcheck), `docker` (`docker build` plus `scripts/image-smoke.sh`), `deploy` (kubeconform against the Flux v2.9.6 CRD schemas, `helm template` of `oci://ghcr.io/chamvi/helm/agent-app` with the release and kind values), then on a push `image`: `tada5hi/craneship@v4` pushes `ghcr.io/<owner>/<repo>` for linux/amd64 and linux/arm64 with the tags `scripts/image-tags.sh` prints (`main-<sha7>-<commit unix ts>` on `main`, `<semver>` on `v<semver>`; `gitTag: 'false'`, so the script is the only tag source). Only that job has `packages: write`.
+`.github/workflows/ci.yml` runs on pull requests, pushes to `main` and `v*` tags: `check` (lint, typecheck, test on Node 26), `workflows` (actionlint, shellcheck), `docker` (`docker build` plus `scripts/image-smoke.sh`), `deploy` (kubeconform against the Flux v2.9.6 CRD schemas, `helm template` of `oci://ghcr.io/chamvi/helm/agent-app` with the release and kind values), then on a push `image`: `tada5hi/craneship@v4` pushes `ghcr.io/<owner>/<repo>` for linux/amd64 and linux/arm64 with the tags `scripts/image-tags.sh` prints (`main-<sha7>-<commit unix ts>` on `main`, `<semver>` on `v<semver>`; `gitTag: 'false'`, so the script is the only tag source). Only that job has `packages: write`.
 
 ## Process and Environment
 
@@ -36,7 +36,7 @@ Upgrading chamvi across a minor (0.3 to 0.4) needs downtime when the store is sh
 
 ## Image and Flux
 
-The image builds on `node:24-trixie-slim` and runs on `ghcr.io/chamvi/node:24` pinned by digest (Dependabot's docker updates move it): tini, uid 1000, `/app`, `CMD node node_modules/@chamvi/cli/dist/cli.mjs start`. It writes nothing outside `/tmp`, so it runs with a read-only root, as the chart requires; `scripts/image-smoke.sh` checks that and exit code 0 on `docker stop`.
+The image builds on `node:26-trixie-slim` and runs on `ghcr.io/chamvi/node:26` pinned by digest (Dependabot's docker updates move it): tini, uid 1000, `/app`, `CMD node node_modules/@chamvi/cli/dist/cli.mjs start`. It writes nothing outside `/tmp`, so it runs with a read-only root, as the chart requires; `scripts/image-smoke.sh` checks that and exit code 0 on `docker stop`.
 
 ### Optional skills
 
@@ -53,7 +53,7 @@ values/loaders use `defineSkill`/`defineSkillSource` from skills; custom loaders
 Adopting skills does not change the starter's runtime dependencies, Dockerfile, manifests or embedded agent
 fixture until you opt in.
 
-The runtime base (Node 24) has no Git. When adopting Git sources, insert this immediately after the existing pinned final `FROM ghcr.io/chamvi/node:24@sha256:...`:
+The runtime base (Node 26) has no Git. When adopting Git sources, insert this immediately after the existing pinned final `FROM ghcr.io/chamvi/node:26@sha256:...`:
 
 ```dockerfile
 USER root
