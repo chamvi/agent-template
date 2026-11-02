@@ -19,6 +19,7 @@ Build with `npm run build`, then start with `npm run start` using the process en
 | `CHAMVI_BASE_PATH` | Shared HTTP prefix, such as `/api` |
 | `CHAMVI_SCHEDULER` | In-process cron firing, disable for external CronJobs |
 | `CHAMVI_AGENTS_DIR` | Optional folder agents beside the explicit entry |
+| `CHAMVI_AGENTS` | Optional comma-separated npm packages that export agents (installed in `dependencies`; the first start after a version bump cancels their unsettled runs) |
 
 Use the [complete environment reference](https://chamvi.dev/reference/app#environment) for limits and optional authentication/features. Never commit real Secret contents. Use SOPS or External Secrets in a fleet repository.
 
