@@ -268,6 +268,13 @@ The environment variables are listed in the [app reference](https://chamvi.dev/r
 ## Upgrading chamvi
 
 Bump `@chamvi/app`, `@chamvi/cli` and `@chamvi/ui` together, then refresh the lockfile with `npm install`.
+For 0.5 to 0.6 (see [Upgrading to 0.6](https://chamvi.dev/guide/upgrading#upgrading-to-0-6)):
+
+- Hand-offs became dispatch: `startHandoff()` is `dispatch()`, `handoff.on()` is `agent.on()`. The example agent uses
+  neither, so only your own agents need the rename.
+- A store migration ships (`RunLineage1792800000000`), so the upgrade needs downtime as for 0.4: let running hand-off
+  trees finish, suspend the chart's `cronJobs`, scale the app to 0, migrate with the new image, then start only 0.6.
+
 For 0.4 to 0.5 (see [Upgrading to 0.5](https://chamvi.dev/guide/upgrading#upgrading-to-0-5)):
 
 - Node >=26.0.0 is required, in CI and in the image: move the build stage to `node:26-trixie-slim` and the runtime
