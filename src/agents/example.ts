@@ -1,6 +1,6 @@
 import {
     cron,
-    defineAgent,
+    defineModelAgent,
     defineTool,
     http,
 } from '@chamvi/app';
@@ -14,7 +14,7 @@ export const countWords = defineTool({
     execute: async ({ text }) => ({ words: text.match(/\S+/gu)?.length ?? 0 }),
 });
 
-export const example = defineAgent({
+export const example = defineModelAgent({
     name: 'example',
     instructions: 'Summarize the supplied text in one sentence. Call count_words on the text first and state the word count in your answer.',
     channels: [

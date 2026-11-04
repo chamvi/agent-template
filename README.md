@@ -62,7 +62,7 @@ The answer is the run itself with `status`, `output` and `steps`. Without `DATAB
 ```ts
 import {
     cron,
-    defineAgent,
+    defineModelAgent,
     defineTool,
     http,
 } from '@chamvi/app';
@@ -76,7 +76,7 @@ export const countWords = defineTool({
     execute: async ({ text }) => ({ words: text.match(/\S+/gu)?.length ?? 0 }),
 });
 
-export const example = defineAgent({
+export const example = defineModelAgent({
     name: 'example',
     instructions: 'Summarize the supplied text in one sentence. Call count_words on the text first and state the word count in your answer.',
     channels: [
@@ -95,7 +95,7 @@ The model is told to call `count_words` before it summarizes. The tool counts no
 
 ## Add an agent / add a module
 
-1. Add `src/agents/<name>.ts`, exporting a `defineAgent(...)` result with a unique kebab-case name.
+1. Add `src/agents/<name>.ts`, exporting a `defineModelAgent(...)` result with a unique kebab-case name.
 2. Import it in `src/index.ts` and append it to the `agents` array.
 3. Add a test with the fake model (see Test).
 
@@ -138,7 +138,7 @@ no module registration. Custom raw values/loaders use `defineSkill`/`defineSkill
 custom loaders own retrieval and reviewed-pin verification. Keep `src/index.ts` synchronous; startup owns preparation:
 
 ```ts
-import { createApp, defineAgent } from '@chamvi/app';
+import { createApp, defineModelAgent } from '@chamvi/app';
 import { gitSkills } from '@chamvi/skills';
 import { example } from './agents/example.ts';
 import { modules } from './modules.ts';
@@ -156,7 +156,7 @@ const extras = gitSkills({
     directory: '/tmp/chamvi-skills/maintainer',
     approved: reviewedMaintainerPins,
 });
-const maintainer = defineAgent({
+const maintainer = defineModelAgent({
     name: 'maintainer', instructions: 'Maintain the approved repository.', skills: [extras],
 });
 export default createApp({
@@ -268,6 +268,12 @@ The environment variables are listed in the [app reference](https://chamvi.dev/r
 ## Upgrading chamvi
 
 Bump `@chamvi/app`, `@chamvi/cli` and `@chamvi/ui` together, then refresh the lockfile with `npm install`.
+For 0.6 to 0.7 (see [Upgrading to 0.7](https://chamvi.dev/guide/upgrading#upgrading-to-0-7)):
+
+- `defineAgent()` is removed: rename every call to `defineModelAgent()` (same input, same checks). The example agent
+  and the smoke test already use it.
+- No store migration, env variable, route or image change ships, so no downtime steps are needed.
+
 For 0.5 to 0.6 (see [Upgrading to 0.6](https://chamvi.dev/guide/upgrading#upgrading-to-0-6)):
 
 - Hand-offs became dispatch: `startHandoff()` is `dispatch()`, `handoff.on()` is `agent.on()`. The example agent uses
