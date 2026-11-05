@@ -110,4 +110,6 @@ New GHCR images are private by default. A private image needs credentials for bo
 
 Before enabling Kubernetes sandboxes, add the provider package, least-privilege RBAC and tested network policy. Workspace isolation alone does not prevent reaching cluster services or cloud metadata. Workspace pods run as root with a writable root filesystem by default (so `apt` and toolchain installs work), which needs a sandbox namespace labelled for Pod Security `baseline`; the provider's `user` and `readOnlyRoot` options restore a `restricted`-compatible pod.
 
+The workspace of a run waiting longer than `CHAMVI_SANDBOX_SUSPEND_AFTER_MS` (default 30 min) is suspended. On Kubernetes the pod is only deleted and rebuilt on resume with the chart's `sandbox.persistence.enabled` (it sets `CHAMVI_SANDBOX_PERSISTENCE`, `CHAMVI_SANDBOX_STORAGE_CLASS` and the claim permissions); without it pods stay up as before. Suspension loses background jobs and `/tmp`. Turning persistence off later leaves the claims behind.
+
 Replace the placeholder release image tag before the first deployment (image automation rewrites it afterwards) and create the Secret separately.
