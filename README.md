@@ -273,6 +273,8 @@ For 0.7 to 0.8 (see [Upgrading to 0.8](https://chamvi.dev/guide/upgrading#upgrad
 - A deployment on Postgres needs a new, empty database: the store migrations became one baseline, a start refuses a
   database with the old schema, and its runs, agent state and conversations do not carry over. The in-memory store of
   the local setup is unaffected.
+- Cut over in order: pause image automation, stop intake and the chart's `cronJobs`, let runs and approvals settle, then
+  switch `DATABASE_URL` and deploy 0.8. Old and new pods must not overlap: separate databases cannot coordinate them.
 - `CHAMVI_ENCRYPTION_KEYS` is new and only needed when you add `whatsappModule()`.
 
 For 0.6 to 0.7 (see [Upgrading to 0.7](https://chamvi.dev/guide/upgrading#upgrading-to-0-7)):
