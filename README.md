@@ -268,6 +268,13 @@ The environment variables are listed in the [app reference](https://chamvi.dev/r
 ## Upgrading chamvi
 
 Bump `@chamvi/app`, `@chamvi/cli` and `@chamvi/ui` together, then refresh the lockfile with `npm install`.
+For 0.7 to 0.8 (see [Upgrading to 0.8](https://chamvi.dev/guide/upgrading#upgrading-to-0-8)):
+
+- A deployment on Postgres needs a new, empty database: the store migrations became one baseline, a start refuses a
+  database with the old schema, and its runs, agent state and conversations do not carry over. The in-memory store of
+  the local setup is unaffected.
+- `CHAMVI_ENCRYPTION_KEYS` is new and only needed when you add `whatsappModule()`.
+
 For 0.6 to 0.7 (see [Upgrading to 0.7](https://chamvi.dev/guide/upgrading#upgrading-to-0-7)):
 
 - `defineAgent()` is removed: rename every call to `defineModelAgent()` (same input, same checks). The example agent
