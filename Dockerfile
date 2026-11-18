@@ -1,6 +1,8 @@
 FROM node:26-trixie-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
+# swagger-ui-dist (through @chamvi/http) pulls @scarf/scarf, whose postinstall sends analytics.
+ENV SCARF_ANALYTICS=false
 RUN npm ci
 COPY tsconfig.json ./
 COPY src ./src

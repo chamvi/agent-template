@@ -233,7 +233,7 @@ docker build -t agent-template:kind .
 kind load docker-image agent-template:kind
 kubectl create namespace agents
 kubectl -n agents create secret generic agent-template-env \
-    --from-literal=CHAMVI_TOKENS='[{"value":"change-me-at-least-16-characters","id":"owner","permissions":["*"]}]' \
+    --from-literal=CHAMVI_TOKENS='[{"value":"change-me-at-least-16-characters","id":"owner","permissions":"*"}]' \
     --from-literal=ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY"
 helm install agent-template oci://ghcr.io/chamvi/helm/agent-app --version '>=0.1.0 <0.2.0' -n agents \
     -f deploy/kind/values.yaml --wait
@@ -268,6 +268,22 @@ The environment variables are listed in the [app reference](https://chamvi.dev/r
 ## Upgrading chamvi
 
 Bump `@chamvi/app`, `@chamvi/cli` and `@chamvi/ui` together, then refresh the lockfile with `npm install`.
+For 0.8 to 0.9 (see [Upgrading to 0.9](https://chamvi.dev/guide/upgrading#upgrading-to-0-9)):
+
+- Rewrite `CHAMVI_TOKENS`: `permissions` takes `"*"` or a list of permission bindings (`chamvi_agent_run`, ...); the
+  old string list, `["*"]` included, fails the start. `GET /me` answers the identity only, the dashboard asks
+  `POST /authorization/check` for permissions.
+- A store migration ships (`ConnectionsRevisionsItemBytes1794230765000`), so the upgrade needs downtime: suspend the
+  chart's `cronJobs`, scale the app to 0, then start only 0.9 (it migrates on start, or run `chamvi migrate` first).
+  The migration locks the conversation items, runs and connections tables while it fills a byte count per stored item.
+- Connections can be configured in the dashboard; set `CHAMVI_ENCRYPTION_KEYS` before saving one.
+- `<basePath>/openapi.json` and `<basePath>/docs` (Swagger UI) are served unauthenticated by default;
+  `httpModule({ openapi: false })` turns them off. The Dockerfile and CI set `SCARF_ANALYTICS=false` for the
+  `swagger-ui-dist` install.
+- `package.json` needs `"overrides": { "ioredis": "^6.0.0" }`, as this template has: `@chamvi/app` lists
+  `@authup/server-adapter-kit` (peer `ioredis ^6`) as an optional peer and `typeorm` an optional `ioredis ^5`, so
+  `npm install` fails with `ERESOLVE` without it. chamvi never uses ioredis through typeorm.
+
 For 0.7 to 0.8 (see [Upgrading to 0.8](https://chamvi.dev/guide/upgrading#upgrading-to-0-8)):
 
 - A deployment on Postgres needs a new, empty database: the store migrations became one baseline, a start refuses a

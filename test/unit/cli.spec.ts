@@ -22,7 +22,7 @@ it('starts the built entry, serves authenticated HTTP/UI and exits 0 on SIGTERM'
             CHAMVI_TOKENS: JSON.stringify([{
                 value: token,
                 id: 'test',
-                permissions: ['*'],
+                permissions: '*',
             }]),
         });
         try {
