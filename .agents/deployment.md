@@ -18,7 +18,7 @@ Build with `npm run build`, then start with `npm run start` using the process en
 | `CHAMVI_PUBLIC_URL` | Public origin, without the app base path |
 | `CHAMVI_BASE_PATH` | Shared HTTP prefix, such as `/api` |
 | `CHAMVI_SCHEDULER` | In-process cron firing, disable for external CronJobs |
-| `CHAMVI_ENCRYPTION_KEYS` | Once the dashboard saves a connection, and with `whatsappModule()`: keyring for stored connection settings, secrets and sessions, one value shared by every pod, kept in a secret |
+| `CHAMVI_ENCRYPTION_KEYS` | Once the dashboard saves a connection (settings-only ones too), and with `whatsappModule()`: keyring for stored connection secrets and sessions, one value shared by every pod, kept in a secret |
 | `CHAMVI_AGENTS_DIR` | Optional folder agents beside the explicit entry |
 | `CHAMVI_AGENTS` | Optional comma-separated npm packages that export agents (installed in `dependencies`; the first start after a version bump cancels their unsettled runs) |
 

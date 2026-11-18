@@ -273,10 +273,14 @@ For 0.8 to 0.9 (see [Upgrading to 0.9](https://chamvi.dev/guide/upgrading#upgrad
 - Rewrite `CHAMVI_TOKENS`: `permissions` takes `"*"` or a list of permission bindings (`chamvi_agent_run`, ...); the
   old string list, `["*"]` included, fails the start. `GET /me` answers the identity only, the dashboard asks
   `POST /authorization/check` for permissions.
+- Let running and waiting runs settle first: a run stored by 0.8 carries the old permission strings, which grant
+  nothing under 0.9, so its permission-checked tools and dispatches are refused after it resumes.
 - A store migration ships (`ConnectionsRevisionsItemBytes1794230765000`), so the upgrade needs downtime: suspend the
-  chart's `cronJobs`, scale the app to 0, then start only 0.9 (it migrates on start, or run `chamvi migrate` first).
-  The migration locks the conversation items, runs and connections tables while it fills a byte count per stored item.
-- Connections can be configured in the dashboard; set `CHAMVI_ENCRYPTION_KEYS` before saving one.
+  chart's `cronJobs` and wait for running Jobs to finish, scale the app to 0 and wait for its pods to exit, then start
+  only 0.9 (it migrates on start, or run `chamvi migrate` first) and resume the `cronJobs` with the new image. The
+  migration locks the conversation items, runs and connections tables while it fills a byte count per stored item.
+- Connections can be configured in the dashboard; set `CHAMVI_ENCRYPTION_KEYS` before saving one, also one with
+  settings only (settings are stored in plain text, secrets encrypted).
 - `<basePath>/openapi.json` and `<basePath>/docs` (Swagger UI) are served unauthenticated by default;
   `httpModule({ openapi: false })` turns them off. The Dockerfile and CI set `SCARF_ANALYTICS=false` for the
   `swagger-ui-dist` install.

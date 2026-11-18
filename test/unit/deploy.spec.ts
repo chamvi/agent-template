@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { readConfig } from '@chamvi/app';
 import { expect, it } from 'vitest';
 import { parseAllDocuments } from 'yaml';
 
@@ -111,4 +112,10 @@ it.each([
     ['deploy/kind/values.yaml', () => parseAllDocuments(readFileSync('deploy/kind/values.yaml', 'utf8'))[0]!.toJSON()],
 ])('sets only agent-app chart values in %s', (_file, values) => {
     expect(leafPaths(values()).filter((path) => !CHART_VALUE_PATHS.includes(path))).toEqual([]);
+});
+
+it('ships a Secret example whose tokens the config reader accepts', () => {
+    const { CHAMVI_TOKENS } = docs('secret.example')[0].stringData;
+    const config = readConfig({ CHAMVI_TOKENS }, { mode: 'start', dev: true });
+    expect(config.tokens).toEqual([expect.objectContaining({ id: 'owner', permissions: '*' })]);
 });
