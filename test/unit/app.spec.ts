@@ -36,7 +36,7 @@ beforeAll(async () => {
             CHAMVI_TOKENS: JSON.stringify([{
                 value: TOKEN,
                 id: 'test',
-                permissions: ['*'],
+                permissions: '*',
             }]),
         },
     });
@@ -71,7 +71,14 @@ it('authenticates the dashboard API', async () => {
     expect((await fetch(`${base}/me`)).status).toBe(401);
     const res = await fetch(`${base}/me`, { headers: { authorization: `Bearer ${TOKEN}` } });
     expect(res.status).toBe(200);
-    expect(await res.json()).toMatchObject({ id: 'test', permissions: ['*'] });
+    expect(await res.json()).toMatchObject({ id: 'test', kind: 'token' });
+    const check = await fetch(`${base}/authorization/check`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${TOKEN}` },
+        body: JSON.stringify({ names: ['chamvi_agent_run'] }),
+    });
+    expect(check.status).toBe(200);
+    expect(await check.json()).toEqual({ permissions: ['chamvi_agent_run'] });
 });
 
 it.each([undefined, 'not-a-valid-token'])('refuses run intake with token %j', async (token) => {

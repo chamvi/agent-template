@@ -1,15 +1,19 @@
 FROM node:26-trixie-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
+# swagger-ui-dist (through @chamvi/http) pulls @scarf/scarf, whose postinstall sends analytics.
+ENV SCARF_ANALYTICS=false
 RUN npm ci
 COPY tsconfig.json ./
 COPY src ./src
 # @chamvi/cli declares tsdown as an optional peer, so the lockfile marks the
 # build toolchain devOptional and `npm prune --omit=dev` keeps it: remove it,
-# then its dependency tree, which npm now reports as extraneous.
+# then its dependency tree, which npm now reports as extraneous. @oxc-project/runtime
+# is a production dependency of the CLI and stays.
 RUN npx chamvi build && npm prune --omit=dev \
     && rm -rf node_modules/tsdown node_modules/rolldown node_modules/rolldown-plugin-dts \
-        node_modules/@rolldown node_modules/@oxc-project node_modules/typescript \
+        node_modules/@rolldown node_modules/typescript \
+    && find node_modules/@oxc-project -mindepth 1 -maxdepth 1 ! -name runtime -exec rm -rf {} + \
     && { npm ls --omit=dev --all --parseable --long 2>/dev/null || true; } \
         | grep ':EXTRANEOUS$' | cut -d: -f1 | xargs -r rm -rf
 

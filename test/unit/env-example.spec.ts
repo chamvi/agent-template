@@ -10,7 +10,7 @@ it('provides placeholders accepted by the real config reader without a provider 
     expect(config.tokens).toEqual([{
         value: 'change-me-dev-token-0001',
         id: 'dev',
-        permissions: ['*'],
+        permissions: '*',
     }]);
     expect(env.ANTHROPIC_API_KEY).toBe('');
     expect(config.store.url).toBeUndefined();

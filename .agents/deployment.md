@@ -12,13 +12,13 @@ Build with `npm run build`, then start with `npm run start` using the process en
 |---|---|
 | `HOST`, `PORT` | Local example is `127.0.0.1:3000`; containers must listen on `0.0.0.0` |
 | `ANTHROPIC_API_KEY` | Required by the example's provider; a missing key prevents startup |
-| `CHAMVI_TOKENS` | JSON token list; replace the public dev sample, scope grants narrowly |
+| `CHAMVI_TOKENS` | JSON token list, `permissions` `"*"` or a list of permission bindings; replace the public dev sample, scope grants narrowly |
 | `DATABASE_URL` | PostgreSQL durable storage; unset is memory lost on restart |
 | `CHAMVI_MIGRATE` | Migrations run at startup by default when `DATABASE_URL` is set; `false` applies them only through `chamvi migrate` |
 | `CHAMVI_PUBLIC_URL` | Public origin, without the app base path |
 | `CHAMVI_BASE_PATH` | Shared HTTP prefix, such as `/api` |
 | `CHAMVI_SCHEDULER` | In-process cron firing, disable for external CronJobs |
-| `CHAMVI_ENCRYPTION_KEYS` | Only with `whatsappModule()`: keyring for stored sessions, one value shared by every pod, kept in a secret |
+| `CHAMVI_ENCRYPTION_KEYS` | Once the dashboard saves a connection (settings-only ones too), and with `whatsappModule()`: keyring for stored connection secrets and sessions, one value shared by every pod, kept in a secret |
 | `CHAMVI_AGENTS_DIR` | Optional folder agents beside the explicit entry |
 | `CHAMVI_AGENTS` | Optional comma-separated npm packages that export agents (installed in `dependencies`; the first start after a version bump cancels their unsettled runs) |
 
