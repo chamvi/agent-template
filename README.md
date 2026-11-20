@@ -268,6 +268,16 @@ The environment variables are listed in the [app reference](https://chamvi.dev/r
 ## Upgrading chamvi
 
 Bump `@chamvi/app`, `@chamvi/cli` and `@chamvi/ui` together, then refresh the lockfile with `npm install`.
+For 0.9 to 0.10 (see [Upgrading to 0.10](https://chamvi.dev/guide/upgrading#upgrading-to-0-10)):
+
+- A store migration ships (`LockTokens1795093873329`), so the upgrade needs downtime as for 0.9: suspend the chart's
+  `cronJobs` and wait for running Jobs to finish, scale the app to 0 and wait for its pods to exit, then start only
+  0.10 and resume the `cronJobs` with the new image. Once it ran, a 0.9 process fails every lock insert.
+- No env variable or route the template uses changes. Code that calls `lockService.acquire()` gets the lease's fencing
+  token (a number) or `undefined` instead of a boolean; test `!== undefined`.
+- Agents can run in another chamvi app (`defineRemoteAgent()`, `@chamvi/peer`); nothing changes without a peer.
+- Keep the `ioredis` override from 0.9.
+
 For 0.8 to 0.9 (see [Upgrading to 0.9](https://chamvi.dev/guide/upgrading#upgrading-to-0-9)):
 
 - Rewrite `CHAMVI_TOKENS`: `permissions` takes `"*"` or a list of permission bindings (`chamvi_agent_run`, ...); the
