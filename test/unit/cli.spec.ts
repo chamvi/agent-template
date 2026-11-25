@@ -16,10 +16,10 @@ it('starts the built entry, serves authenticated HTTP/UI and exits 0 on SIGTERM'
             PORT: String(port),
             HOST: '127.0.0.1',
             ANTHROPIC_API_KEY: 'test-dummy-not-a-real-key',
-            CHAMVI_SCHEDULER: 'false',
-            CHAMVI_DRAIN_TIMEOUT_MS: '2000',
-            CHAMVI_FORCE_EXIT_MS: '5000',
-            CHAMVI_TOKENS: JSON.stringify([{
+            SCHEDULER: 'false',
+            DRAIN_TIMEOUT_MS: '2000',
+            FORCE_EXIT_MS: '5000',
+            TOKENS: JSON.stringify([{
                 value: token,
                 id: 'test',
                 permissions: '*',

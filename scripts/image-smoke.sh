@@ -33,7 +33,7 @@ fi
 
 container=$(docker run -d --read-only --tmpfs /tmp --user 1000:1000 \
     -p "127.0.0.1:$port:3000" \
-    -e "CHAMVI_TOKENS=[{\"value\":\"$token\",\"id\":\"smoke\",\"permissions\":[]}]" \
+    -e "TOKENS=[{\"value\":\"$token\",\"id\":\"smoke\",\"permissions\":[]}]" \
     -e ANTHROPIC_API_KEY=smoke-dummy-not-a-real-key \
     "$image")
 trap 'docker rm -f "$container" >/dev/null 2>&1 || true' EXIT

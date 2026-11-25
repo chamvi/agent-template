@@ -32,8 +32,8 @@ beforeAll(async () => {
         env: {
             PORT: String(port),
             HOST: '127.0.0.1',
-            CHAMVI_SCHEDULER: 'false',
-            CHAMVI_TOKENS: JSON.stringify([{
+            SCHEDULER: 'false',
+            TOKENS: JSON.stringify([{
                 value: TOKEN,
                 id: 'test',
                 permissions: '*',

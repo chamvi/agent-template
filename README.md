@@ -53,7 +53,7 @@ curl -H 'authorization: Bearer change-me-dev-token-0001' \
     http://localhost:3000/runs/<runId>
 ```
 
-The answer is the run itself with `status`, `output` and `steps`. Without `DATABASE_URL`, runs live in memory and are gone after a restart; use PostgreSQL for anything durable. The weekly schedule fires in the running app unless `CHAMVI_SCHEDULER=false`; every run calls your provider account.
+The answer is the run itself with `status`, `output` and `steps`. Without `DATABASE_URL`, runs live in memory and are gone after a restart; use PostgreSQL for anything durable. The weekly schedule fires in the running app unless `SCHEDULER=false`; every run calls your provider account.
 
 ## The example agent
 
@@ -91,7 +91,7 @@ export const example = defineModelAgent({
 });
 ```
 
-The model is told to call `count_words` before it summarizes. The tool counts non-empty whitespace-separated words. The cron subscription (id `cron:0 8 * * 1`) fires at 08:00 on Mondays in `Europe/Berlin`, following its daylight-saving changes. Model ids are `<provider>/<model>`, split at the first slash; `ANTHROPIC_API_KEY` configures the `anthropic` provider. An agent without `model` uses the app default `CHAMVI_MODEL`, and further providers (a second key, a self-hosted OpenAI-compatible router) are declared with `CHAMVI_PROVIDER_<NAME>_*` or a `chamvi.json`; see `.env.example` and [Pick a Model](https://chamvi.dev/guide/models). `npm run build && npx chamvi start --check` checks the settings, the store connection and every agent without starting anything.
+The model is told to call `count_words` before it summarizes. The tool counts non-empty whitespace-separated words. The cron subscription (id `cron:0 8 * * 1`) fires at 08:00 on Mondays in `Europe/Berlin`, following its daylight-saving changes. Model ids are `<provider>/<model>`, split at the first slash; `ANTHROPIC_API_KEY` configures the `anthropic` provider. An agent without `model` uses the app default `MODEL`, and further providers (a second key, a self-hosted OpenAI-compatible router) are declared with `PROVIDER_<NAME>_*` or a `chamvi.json`; see `.env.example` and [Pick a Model](https://chamvi.dev/guide/models). `npm run build && npx chamvi start --check` checks the settings, the store connection and every agent without starting anything.
 
 ## Add an agent / add a module
 
@@ -99,7 +99,7 @@ The model is told to call `count_words` before it summarizes. The tool counts no
 2. Import it in `src/index.ts` and append it to the `agents` array.
 3. Add a test with the fake model (see Test).
 
-The app entry sets `createApp({ model: 'anthropic/claude-sonnet-5-5', agents: [example], modules })`. Agents inherit this default unless they explicitly set their own model. `CHAMVI_MODEL` overrides the app default, so deployments can choose a model without editing the agent. Run `chamvi start --check` after building to validate configuration without starting the server or calling a model.
+The app entry sets `createApp({ model: 'anthropic/claude-sonnet-5-5', agents: [example], modules })`. Agents inherit this default unless they explicitly set their own model. `MODEL` overrides the app default, so deployments can choose a model without editing the agent. Run `chamvi start --check` after building to validate configuration without starting the server or calling a model.
 
 Import the agent API from `@chamvi/app`, not `@chamvi/core` or `orkos`. Relative imports carry `.ts`, and `src/index.ts` stays a synchronous `export default createApp(...)` that starts nothing.
 
@@ -115,7 +115,7 @@ Import the agent API from `@chamvi/app`, not `@chamvi/core` or `orkos`. Relative
 
 Feature modules come from the package's `/module` subpath (`@chamvi/github/module`); `consoleChannelModule` comes from `@chamvi/app`. Module factories read their environment when called. GitHub tools get the shared app with `injectGithubContext(ctx)` from `@chamvi/github`; tools reach a channel with `ctx.channels.findOne(name)`.
 
-Folder agents are optional next to the code agents: put a default-exported agent in `agents/<name>/agent.ts` (or the directory in `CHAMVI_AGENTS_DIR`), named like its folder. The app loads and watches them in start mode. Agents in their own npm package load by name: list the package in `createApp({ agents: [example, '@acme/review-agent'] })`, `chamvi.json` `"agents"` or `CHAMVI_AGENTS` (comma-separated), install it in `dependencies` and default-export the agent (or an array, or a factory returning one). Its revision is the package version (in dev plus a content hash), so the first start after a version bump cancels its unsettled runs; see [Agent Packages](https://chamvi.dev/guide/agent-packages).
+Folder agents are optional next to the code agents: put a default-exported agent in `agents/<name>/agent.ts` (or the directory in `AGENTS_DIR`), named like its folder. The app loads and watches them in start mode. Agents in their own npm package load by name: list the package in `createApp({ agents: [example, '@acme/review-agent'] })`, `chamvi.json` `"agents"` or `AGENTS` (comma-separated), install it in `dependencies` and default-export the agent (or an array, or a factory returning one). Its revision is the package version (in dev plus a content hash), so the first start after a version bump cancels its unsettled runs; see [Agent Packages](https://chamvi.dev/guide/agent-packages).
 
 Agent `instructions` also accept ordered native system/user/assistant arrays (since chamvi 0.4). `AgentInstructions`, `SystemModelMessage`, `UserModelMessage`, `AssistantModelMessage` and native
 content types are exported by core and re-exported through `@chamvi/app`, so this app keeps using its existing
@@ -211,7 +211,7 @@ docker build -t agent-template:local .
 sh scripts/image-smoke.sh agent-template:local
 ```
 
-The Dockerfile builds with `npm ci` and `chamvi build` on `node:26-trixie-slim`, then copies `package.json`, `dist/` and the production `node_modules/` (minus the build toolchain and its dependencies, which `npm prune --omit=dev` keeps because of `@chamvi/cli`'s optional `tsdown` peer) onto `ghcr.io/chamvi/node:26` (pinned by digest; tini, uid 1000, `/app`). `scripts/image-smoke.sh` fails when the image ships the toolchain or any package `npm ls` reports as extraneous, runs it the way the chart does (read-only root, a `/tmp` tmpfs, uid 1000), waits for `/readyz` and `/ui/`, and checks that `docker stop` ends it with exit code 0. The CI `docker` job runs the same script. The image holds no `chamvi.json`: copy yours in with another `COPY`, or mount it and set `CHAMVI_CONFIG_FILE`.
+The Dockerfile builds with `npm ci` and `chamvi build` on `node:26-trixie-slim`, then copies `package.json`, `dist/` and the production `node_modules/` (minus the build toolchain and its dependencies, which `npm prune --omit=dev` keeps because of `@chamvi/cli`'s optional `tsdown` peer) onto `ghcr.io/chamvi/node:26` (pinned by digest; tini, uid 1000, `/app`). `scripts/image-smoke.sh` fails when the image ships the toolchain or any package `npm ls` reports as extraneous, runs it the way the chart does (read-only root, a `/tmp` tmpfs, uid 1000), waits for `/readyz` and `/ui/`, and checks that `docker stop` ends it with exit code 0. The CI `docker` job runs the same script. The image holds no `chamvi.json`: copy yours in with another `COPY`, or mount it and set `CONFIG_FILE`.
 
 Outside Docker, `npm run build` writes `dist/index.mjs` with every dependency external and `npm run start` runs it with the process environment (it does not read `.env`).
 
@@ -233,9 +233,9 @@ docker build -t agent-template:kind .
 kind load docker-image agent-template:kind
 kubectl create namespace agents
 kubectl -n agents create secret generic agent-template-env \
-    --from-literal=CHAMVI_TOKENS='[{"value":"change-me-at-least-16-characters","id":"owner","permissions":"*"}]' \
+    --from-literal=TOKENS='[{"value":"change-me-at-least-16-characters","id":"owner","permissions":"*"}]' \
     --from-literal=ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY"
-helm install agent-template oci://ghcr.io/chamvi/helm/agent-app --version '>=0.1.0 <0.2.0' -n agents \
+helm install agent-template oci://ghcr.io/chamvi/helm/agent-app --version '>=0.2.0 <0.3.0' -n agents \
     -f deploy/kind/values.yaml --wait
 kubectl -n agents port-forward svc/agent-template-agent-app 8080:80
 ```
@@ -249,25 +249,33 @@ Then `curl localhost:8080/readyz` answers `200` and the dashboard is at `http://
 | File | Object |
 |---|---|
 | `namespace.yaml` | Namespace `agents` |
-| `chart.yaml` | `OCIRepository` for the chart (`>=0.1.0 <0.2.0`) |
-| `release.yaml` | `HelmRelease` with the image, the env Secret, `CHAMVI_PUBLIC_URL` and the ingress |
+| `chart.yaml` | `OCIRepository` for the chart (`>=0.2.0 <0.3.0`) |
+| `release.yaml` | `HelmRelease` with the image, the env Secret, `PUBLIC_URL` and the ingress |
 | `kustomization.yaml` | The three above |
 | `secret.example.yaml` | The env Secret's shape (not in the kustomization) |
 | `image-automation.yaml` | `ImageRepository`, `ImagePolicy`, `ImageUpdateAutomation` for your fleet repo |
 
-Create the Secret `agent-template-env` out of band (SOPS or External Secrets, never committed in plain text); it holds `ANTHROPIC_API_KEY`, `CHAMVI_TOKENS` and `DATABASE_URL`. Copy `image-automation.yaml` into the fleet repository Flux watches (its `GitRepository flux-system`), next to the release: the `ImagePolicy` picks the newest `main-` tag by its timestamp and the automation rewrites the release's `$imagepolicy` markers. For release images switch the policy to `semver` (commented in the file).
+Create the Secret `agent-template-env` out of band (SOPS or External Secrets, never committed in plain text); it holds `ANTHROPIC_API_KEY`, `TOKENS` and `DATABASE_URL`. Copy `image-automation.yaml` into the fleet repository Flux watches (its `GitRepository flux-system`), next to the release: the `ImagePolicy` picks the newest `main-` tag by its timestamp and the automation rewrites the release's `$imagepolicy` markers. For release images switch the policy to `semver` (commented in the file).
 
 Before the first apply, replace two placeholders: `release.yaml`'s image tag `main-0000000-0` (it never exists, so the first install would sit in `ImagePullBackOff`) with a pushed tag, such as the `main-<sha7>-<time>` tag of the last CI image job or a release tag, and the `ImageUpdateAutomation`'s `spec.update.path` `./clusters/<cluster>` with the fleet directory that holds `release.yaml`. Afterwards the automation rewrites the tag.
 
-Set `CHAMVI_PUBLIC_URL` to the public origin only (with the ingress enabled and no value, the chart derives it from the ingress host); the chart's `basePath` value sets `CHAMVI_BASE_PATH`, and approval links get it once. The GitHub channel then listens at `<basePath>/channels/github`.
+Set `PUBLIC_URL` to the public origin only (with the ingress enabled and no value, the chart derives it from the ingress host); the chart's `basePath` value sets `BASE_PATH`, and approval links get it once. The GitHub channel then listens at `<basePath>/channels/github`.
 
-Pick one scheduler: the app fires its cron subscriptions, or the chart's `cronJobs` value runs `chamvi run-job example 'cron:0 8 * * 1'` as a Kubernetes CronJob and sets `CHAMVI_SCHEDULER=false` on the app (commented in `release.yaml`). Jobs and the app must share one database. A failed `chamvi run-job` prints only `<agent>: failed (run <id>)` and exits 1; the run's error stays on the stored run, readable in the dashboard or `GET /runs/<id>` only when the Secret carries `DATABASE_URL` (in memory it is gone with the job's pod).
+Pick one scheduler: the app fires its cron subscriptions, or the chart's `cronJobs` value runs `chamvi run-job example 'cron:0 8 * * 1'` as a Kubernetes CronJob and sets `SCHEDULER=false` on the app (commented in `release.yaml`). Jobs and the app must share one database. A failed `chamvi run-job` prints only `<agent>: failed (run <id>)` and exits 1; the run's error stays on the stored run, readable in the dashboard or `GET /runs/<id>` only when the Secret carries `DATABASE_URL` (in memory it is gone with the job's pod).
 
 The environment variables are listed in the [app reference](https://chamvi.dev/reference/app#environment). A missing provider key stops `chamvi start` with exit code 2, so `/readyz` never turns green.
 
 ## Upgrading chamvi
 
 Bump `@chamvi/app`, `@chamvi/cli` and `@chamvi/ui` together, then refresh the lockfile with `npm install`.
+For 0.11 to 0.12 (see [Upgrading to 0.12](https://chamvi.dev/guide/upgrading#upgrading-to-0-12)):
+
+- chamvi's own env variables drop the `CHAMVI_` prefix: rename them in `.env`, the Secret and the chart values
+  (`CHAMVI_TOKENS` is `TOKENS`, `CHAMVI_PUBLIC_URL` is `PUBLIC_URL`, `CHAMVI_MIGRATE` is `MIGRATE`, ...). An old name
+  is ignored, not refused. Upgrade the `agent-app` chart in the same rollout.
+- authup: the server client moves to `AUTHUP_SERVER_CLIENT_ID`/`AUTHUP_SERVER_CLIENT_SECRET`, and `AUTHUP_CLIENT_ID`
+  now names the dashboard client (default `chamvi`). The template sets none of these.
+
 For 0.10 to 0.11 (see [Upgrading to 0.11](https://chamvi.dev/guide/upgrading#upgrading-to-0-11)):
 
 - A store migration ships (`LimitUses1795552285096`). It only adds the table `chamvi_limit_uses`, which a 0.10

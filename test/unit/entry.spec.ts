@@ -18,7 +18,7 @@ it('refuses to start without the provider key', async () => {
                 PORT: String(await freePort()),
                 HOST: '127.0.0.1',
                 ANTHROPIC_API_KEY: '',
-                CHAMVI_TOKENS: JSON.stringify([{
+                TOKENS: JSON.stringify([{
                     value: 't'.repeat(16),
                     id: 'test',
                     permissions: [],

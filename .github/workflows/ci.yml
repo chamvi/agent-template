@@ -37,8 +37,8 @@ jobs:
             - run: node node_modules/@chamvi/cli/dist/cli.mjs start --check
               env:
                   ANTHROPIC_API_KEY: ci-placeholder-not-a-real-key
-                  CHAMVI_SCHEDULER: 'false'
-                  CHAMVI_TOKENS: '[{"value":"ci-placeholder-token-0001","id":"ci","permissions":[]}]'
+                  SCHEDULER: 'false'
+                  TOKENS: '[{"value":"ci-placeholder-token-0001","id":"ci","permissions":[]}]'
 
     workflows:
         name: Lint workflows and scripts
@@ -70,7 +70,7 @@ jobs:
             KUBECONFORM_VERSION: v0.8.0
             FLUX_VERSION: v2.9.6
             CHART: oci://ghcr.io/chamvi/helm/agent-app
-            CHART_RANGE: '>=0.1.0 <0.2.0'
+            CHART_RANGE: '>=0.2.0 <0.3.0'
         steps:
             - uses: actions/checkout@v7
               with:
