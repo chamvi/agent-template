@@ -70,7 +70,7 @@ jobs:
             KUBECONFORM_VERSION: v0.8.0
             FLUX_VERSION: v2.9.6
             CHART: oci://ghcr.io/chamvi/helm/agent-app
-            CHART_RANGE: '>=0.1.0 <0.2.0'
+            CHART_RANGE: '>=0.2.0 <0.3.0'
         steps:
             - uses: actions/checkout@v7
               with:

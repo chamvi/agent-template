@@ -105,7 +105,7 @@ saved results keep old checkpoint bytes, pending/future loads use the new snapsh
 change folder revisions; finish/cancel unsettled runs before an upgrade if mixed-version disclosure is unacceptable.
 Tracked agent extras retain existing revision cancellation behavior.
 
-The Flux source is `oci://ghcr.io/chamvi/helm/agent-app` (`>=0.1.0 <0.2.0`). Rename app/release identifiers, namespace, image, image-policy markers and the kind values' Secret name consistently; `test/unit/deploy.spec.ts` derives every expected name from the manifests, so a consistent rename passes. The release sets only keys of the chart's `values.yaml`; the chart owns `PORT`, `BASE_PATH` (its `basePath` value) and, with `cronJobs`, `SCHEDULER=false`. Main-branch tags are selected by their numeric timestamp, release tags by semver. Image automation belongs in the fleet repository.
+The Flux source is `oci://ghcr.io/chamvi/helm/agent-app` (`>=0.2.0 <0.3.0`). Rename app/release identifiers, namespace, image, image-policy markers and the kind values' Secret name consistently; `test/unit/deploy.spec.ts` derives every expected name from the manifests, so a consistent rename passes. The release sets only keys of the chart's `values.yaml`; the chart owns `PORT`, `BASE_PATH` (its `basePath` value) and, with `cronJobs`, `SCHEDULER=false`. Main-branch tags are selected by their numeric timestamp, release tags by semver. Image automation belongs in the fleet repository.
 
 New GHCR images are private by default. A private image needs credentials for both Flux scanning (`ImageRepository.spec.secretRef`) and pod pulls (`imagePullSecrets`). The `ghcr.io/chamvi/*` images and the chart need no pull secrets.
 

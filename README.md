@@ -235,7 +235,7 @@ kubectl create namespace agents
 kubectl -n agents create secret generic agent-template-env \
     --from-literal=TOKENS='[{"value":"change-me-at-least-16-characters","id":"owner","permissions":"*"}]' \
     --from-literal=ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY"
-helm install agent-template oci://ghcr.io/chamvi/helm/agent-app --version '>=0.1.0 <0.2.0' -n agents \
+helm install agent-template oci://ghcr.io/chamvi/helm/agent-app --version '>=0.2.0 <0.3.0' -n agents \
     -f deploy/kind/values.yaml --wait
 kubectl -n agents port-forward svc/agent-template-agent-app 8080:80
 ```
@@ -249,7 +249,7 @@ Then `curl localhost:8080/readyz` answers `200` and the dashboard is at `http://
 | File | Object |
 |---|---|
 | `namespace.yaml` | Namespace `agents` |
-| `chart.yaml` | `OCIRepository` for the chart (`>=0.1.0 <0.2.0`) |
+| `chart.yaml` | `OCIRepository` for the chart (`>=0.2.0 <0.3.0`) |
 | `release.yaml` | `HelmRelease` with the image, the env Secret, `PUBLIC_URL` and the ingress |
 | `kustomization.yaml` | The three above |
 | `secret.example.yaml` | The env Secret's shape (not in the kustomization) |

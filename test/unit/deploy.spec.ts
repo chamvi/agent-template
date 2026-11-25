@@ -76,7 +76,7 @@ it('accepts the commented private-image options once enabled', () => {
     checkPullSecrets(release, automation);
 });
 
-// Leaf paths of the agent-app 0.1.x values.yaml these examples may set (the chart
+// Leaf paths of the agent-app 0.2.x values.yaml these examples may set (the chart
 // refuses unknown keys through its schema; a typo would otherwise be ignored).
 const CHART_VALUE_PATHS = [
     'image.repository',
