@@ -268,10 +268,18 @@ The environment variables are listed in the [app reference](https://chamvi.dev/r
 ## Upgrading chamvi
 
 Bump `@chamvi/app`, `@chamvi/cli` and `@chamvi/ui` together, then refresh the lockfile with `npm install`.
+For 0.11 to 0.12 (see [Upgrading to 0.12](https://chamvi.dev/guide/upgrading#upgrading-to-0-12)):
+
+- chamvi's own env variables drop the `CHAMVI_` prefix: rename them in `.env`, the Secret and the chart values
+  (`CHAMVI_TOKENS` is `TOKENS`, `CHAMVI_PUBLIC_URL` is `PUBLIC_URL`, `CHAMVI_MIGRATE` is `MIGRATE`, ...). An old name
+  is ignored, not refused. Upgrade the `agent-app` chart in the same rollout.
+- authup: the server client moves to `AUTHUP_SERVER_CLIENT_ID`/`AUTHUP_SERVER_CLIENT_SECRET`, and `AUTHUP_CLIENT_ID`
+  now names the dashboard client (default `chamvi`). The template sets none of these.
+
 For 0.10 to 0.11 (see [Upgrading to 0.11](https://chamvi.dev/guide/upgrading#upgrading-to-0-11)):
 
 - A store migration ships (`LimitUses1795552285096`). It only adds the table `chamvi_limit_uses`, which a 0.10
-  process never reads, so no downtime is needed. With `MIGRATE=false`, run `chamvi migrate` with the new image
+  process never reads, so no downtime is needed. With `CHAMVI_MIGRATE=false`, run `chamvi migrate` with the new image
   before it starts. Tool calls an old pod runs are not counted against per-tool limits.
 - Drop the `ioredis` override from 0.9: chamvi's authup peer no longer needs it.
 - Paths match in their exact case: call routes, probes and webhooks with the exact path.
@@ -291,7 +299,7 @@ For 0.9 to 0.10 (see [Upgrading to 0.10](https://chamvi.dev/guide/upgrading#upgr
 
 For 0.8 to 0.9 (see [Upgrading to 0.9](https://chamvi.dev/guide/upgrading#upgrading-to-0-9)):
 
-- Rewrite `TOKENS`: `permissions` takes `"*"` or a list of permission bindings (`chamvi_agent_run`, ...); the
+- Rewrite `CHAMVI_TOKENS`: `permissions` takes `"*"` or a list of permission bindings (`chamvi_agent_run`, ...); the
   old string list, `["*"]` included, fails the start. `GET /me` answers the identity only, the dashboard asks
   `POST /authorization/check` for permissions.
 - Let running and waiting runs settle first: a run stored by 0.8 carries the old permission strings, which grant
@@ -300,7 +308,7 @@ For 0.8 to 0.9 (see [Upgrading to 0.9](https://chamvi.dev/guide/upgrading#upgrad
   chart's `cronJobs` and wait for running Jobs to finish, scale the app to 0 and wait for its pods to exit, then start
   only 0.9 (it migrates on start, or run `chamvi migrate` first) and resume the `cronJobs` with the new image. The
   migration locks the conversation items, runs and connections tables while it fills a byte count per stored item.
-- Connections can be configured in the dashboard; set `ENCRYPTION_KEYS` before saving one, also one with
+- Connections can be configured in the dashboard; set `CHAMVI_ENCRYPTION_KEYS` before saving one, also one with
   settings only (settings are stored in plain text, secrets encrypted).
 - `<basePath>/openapi.json` and `<basePath>/docs` (Swagger UI) are served unauthenticated by default;
   `httpModule({ openapi: false })` turns them off. The Dockerfile and CI set `SCARF_ANALYTICS=false` for the
@@ -316,7 +324,7 @@ For 0.7 to 0.8 (see [Upgrading to 0.8](https://chamvi.dev/guide/upgrading#upgrad
   the local setup is unaffected.
 - Cut over in order: pause image automation, stop intake and the chart's `cronJobs`, let runs and approvals settle, then
   switch `DATABASE_URL` and deploy 0.8. Old and new pods must not overlap: separate databases cannot coordinate them.
-- `ENCRYPTION_KEYS` is new and only needed when you add `whatsappModule()`.
+- `CHAMVI_ENCRYPTION_KEYS` is new and only needed when you add `whatsappModule()`.
 
 For 0.6 to 0.7 (see [Upgrading to 0.7](https://chamvi.dev/guide/upgrading#upgrading-to-0-7)):
 
@@ -345,7 +353,7 @@ For 0.3 to 0.4 (see [Upgrading to 0.4](https://chamvi.dev/guide/upgrading#upgrad
   approval in them unless an agent opts a tool out with `trust.tools`.
 - The upgrade needs downtime. Never let 0.3 and 0.4 processes share the database: suspend the chart's `cronJobs`
   and wait for running jobs, scale the app to 0 and wait for its pods to exit, run `chamvi migrate` once with the
-  new image (or start it with the default `MIGRATE=true`), then start only 0.4 and resume the CronJobs.
+  new image (or start it with the default `CHAMVI_MIGRATE=true`), then start only 0.4 and resume the CronJobs.
 
 ## Images are private by default
 
