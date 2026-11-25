@@ -271,7 +271,8 @@ Bump `@chamvi/app`, `@chamvi/cli` and `@chamvi/ui` together, then refresh the lo
 For 0.10 to 0.11 (see [Upgrading to 0.11](https://chamvi.dev/guide/upgrading#upgrading-to-0-11)):
 
 - A store migration ships (`LimitUses1795552285096`). It only adds the table `chamvi_limit_uses`, which a 0.10
-  process never reads, so no downtime is needed; tool calls an old pod runs are not counted against per-tool limits.
+  process never reads, so no downtime is needed. With `CHAMVI_MIGRATE=false`, run `chamvi migrate` with the new image
+  before it starts. Tool calls an old pod runs are not counted against per-tool limits.
 - Drop the `ioredis` override from 0.9: chamvi's authup peer no longer needs it.
 - Paths match in their exact case: call routes, probes and webhooks with the exact path.
 - With `AUTHUP_URL`: `AUTHUP_CLIENT_ID` defaults to `chamvi-server`, the new `AUTHUP_REALM` to `master`, and the
