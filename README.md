@@ -275,8 +275,9 @@ For 0.10 to 0.11 (see [Upgrading to 0.11](https://chamvi.dev/guide/upgrading#upg
   before it starts. Tool calls an old pod runs are not counted against per-tool limits.
 - Drop the `ioredis` override from 0.9: chamvi's authup peer no longer needs it.
 - Paths match in their exact case: call routes, probes and webhooks with the exact path.
-- With `AUTHUP_URL`: `AUTHUP_CLIENT_ID` defaults to `chamvi-server`, the new `AUTHUP_REALM` to `master`, and the
-  dashboard offers the authup login as the public client `chamvi`. The template sets none of these.
+- With `AUTHUP_URL`: `AUTHUP_CLIENT_ID` defaults to `chamvi-server`, the new `AUTHUP_REALM` to `master` (sent as the
+  realm of the client-credentials request: set it when the server client lives in another realm), and the dashboard
+  offers the authup login as the public client `chamvi`. The template sets none of these.
 
 For 0.9 to 0.10 (see [Upgrading to 0.10](https://chamvi.dev/guide/upgrading#upgrading-to-0-10)):
 
