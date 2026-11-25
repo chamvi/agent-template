@@ -17,9 +17,9 @@
     },
     "dependencies": {
         "@ai-sdk/anthropic": "^4.0.107",
-        "@chamvi/app": "^0.11.0",
-        "@chamvi/cli": "^0.11.0",
-        "@chamvi/ui": "^0.11.0",
+        "@chamvi/app": "^0.12.0",
+        "@chamvi/cli": "^0.12.0",
+        "@chamvi/ui": "^0.12.0",
         "ai": "^7.0.179",
         "pg": "^8",
         "typeorm": "^1.1.3",
