@@ -268,6 +268,17 @@ The environment variables are listed in the [app reference](https://chamvi.dev/r
 ## Upgrading chamvi
 
 Bump `@chamvi/app`, `@chamvi/cli` and `@chamvi/ui` together, then refresh the lockfile with `npm install`.
+For 0.10 to 0.11 (see [Upgrading to 0.11](https://chamvi.dev/guide/upgrading#upgrading-to-0-11)):
+
+- A store migration ships (`LimitUses1795552285096`). It only adds the table `chamvi_limit_uses`, which a 0.10
+  process never reads, so no downtime is needed. With `CHAMVI_MIGRATE=false`, run `chamvi migrate` with the new image
+  before it starts. Tool calls an old pod runs are not counted against per-tool limits.
+- Drop the `ioredis` override from 0.9: chamvi's authup peer no longer needs it.
+- Paths match in their exact case: call routes, probes and webhooks with the exact path.
+- With `AUTHUP_URL`: `AUTHUP_CLIENT_ID` defaults to `chamvi-server`, the new `AUTHUP_REALM` to `master` (sent as the
+  realm of the client-credentials request: set it when the server client lives in another realm), and the dashboard
+  offers the authup login as the public client `chamvi`. The template sets none of these.
+
 For 0.9 to 0.10 (see [Upgrading to 0.10](https://chamvi.dev/guide/upgrading#upgrading-to-0-10)):
 
 - A store migration ships (`LockTokens1795093873329`), so the upgrade needs downtime as for 0.9: suspend the chart's
@@ -294,7 +305,7 @@ For 0.8 to 0.9 (see [Upgrading to 0.9](https://chamvi.dev/guide/upgrading#upgrad
 - `<basePath>/openapi.json` and `<basePath>/docs` (Swagger UI) are served unauthenticated by default;
   `httpModule({ openapi: false })` turns them off. The Dockerfile and CI set `SCARF_ANALYTICS=false` for the
   `swagger-ui-dist` install.
-- `package.json` needs `"overrides": { "ioredis": "^6.0.0" }`, as this template has: `@chamvi/app` lists
+- `package.json` needs `"overrides": { "ioredis": "^6.0.0" }` (until 0.11): `@chamvi/app` lists
   `@authup/server-adapter-kit` (peer `ioredis ^6`) as an optional peer and `typeorm` an optional `ioredis ^5`, so
   `npm install` fails with `ERESOLVE` without it. chamvi never uses ioredis through typeorm.
 
