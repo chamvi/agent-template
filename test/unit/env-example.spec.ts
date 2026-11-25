@@ -16,10 +16,10 @@ it('provides placeholders accepted by the real config reader without a provider 
     expect(config.store.url).toBeUndefined();
 });
 
-it('shows CHAMVI_MIGRATE as the opt-out of the default startup migration', () => {
+it('shows MIGRATE as the opt-out of the default startup migration', () => {
     const source = readFileSync('.env.example', 'utf8');
     expect(readConfig({}, { mode: 'start', dev: true }).store.migrate).toBe(true);
-    const line = source.split('\n').find((entry) => entry.startsWith('# CHAMVI_MIGRATE='));
+    const line = source.split('\n').find((entry) => entry.startsWith('# MIGRATE='));
     expect(line).toBeDefined();
     const env = parseEnv(line!.slice(2));
     expect(readConfig(env, { mode: 'start', dev: true }).store.migrate).toBe(false);

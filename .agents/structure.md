@@ -42,7 +42,7 @@ agent-template/
 | `test/utils/model.ts` | V4 scripted stream and `AppOptions.models` provider override |
 | `test/utils/process.ts` | Isolated-env CLI subprocesses, captured output, timeout and temp folders |
 
-The app is not a library and has no barrel export API. Add code agents under `src/agents/` and register them in the entry. Optional folder agents live under `CHAMVI_AGENTS_DIR/<name>/agent.ts` or `./agents/<name>/agent.ts`, with matching agent/folder names and no nested dependency installs.
+The app is not a library and has no barrel export API. Add code agents under `src/agents/` and register them in the entry. Optional folder agents live under `AGENTS_DIR/<name>/agent.ts` or `./agents/<name>/agent.ts`, with matching agent/folder names and no nested dependency installs.
 
 ## Dependencies
 

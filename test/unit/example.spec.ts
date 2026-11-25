@@ -67,7 +67,7 @@ it('executes the scheduled tool call and feeds the count back to the model', asy
     }
 });
 
-it('lets CHAMVI_MODEL override the app default for a real run', async () => {
+it('lets MODEL override the app default for a real run', async () => {
     const model = fakeModel([{ text: 'Selected the alternate model.' }]);
     const app = createApp({
         model: 'unused/default',
@@ -75,7 +75,7 @@ it('lets CHAMVI_MODEL override the app default for a real run', async () => {
         models: fakeModels(model, 'alternate/model-id'),
     });
     try {
-        const result = await app.runJob({ agent: 'example', env: { CHAMVI_MODEL: 'alternate/model-id' } });
+        const result = await app.runJob({ agent: 'example', env: { MODEL: 'alternate/model-id' } });
         expect(result).toMatchObject({ status: 'completed', exitCode: 0 });
         expect(model.doStreamCalls).toHaveLength(1);
     } finally {

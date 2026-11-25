@@ -15,9 +15,9 @@ export const modules: NonNullable<AppOptions['modules']> = [
     uiModule(),
     // Signed deliveries at /channels/github and outbound comments/approval links.
     // github,
-    // Also install @chamvi/sandbox-k8s and set CHAMVI_SANDBOX_NAMESPACE.
+    // Also install @chamvi/sandbox-k8s and set SANDBOX_NAMESPACE.
     // sandboxModule({ provider: 'kubernetes' }),
-    // Outbound OpenClaw messages; set OPENCLAW_* and CHAMVI_PUBLIC_URL.
+    // Outbound OpenClaw messages; set OPENCLAW_* and PUBLIC_URL.
     // openclawModule(),
     // Outbound console messages for tools using ctx.channels.findOneOrFail('console').
     // consoleChannelModule(),

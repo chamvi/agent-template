@@ -12,15 +12,15 @@ Build with `npm run build`, then start with `npm run start` using the process en
 |---|---|
 | `HOST`, `PORT` | Local example is `127.0.0.1:3000`; containers must listen on `0.0.0.0` |
 | `ANTHROPIC_API_KEY` | Required by the example's provider; a missing key prevents startup |
-| `CHAMVI_TOKENS` | JSON token list, `permissions` `"*"` or a list of permission bindings; replace the public dev sample, scope grants narrowly |
+| `TOKENS` | JSON token list, `permissions` `"*"` or a list of permission bindings; replace the public dev sample, scope grants narrowly |
 | `DATABASE_URL` | PostgreSQL durable storage; unset is memory lost on restart |
-| `CHAMVI_MIGRATE` | Migrations run at startup by default when `DATABASE_URL` is set; `false` applies them only through `chamvi migrate` |
-| `CHAMVI_PUBLIC_URL` | Public origin, without the app base path |
-| `CHAMVI_BASE_PATH` | Shared HTTP prefix, such as `/api` |
-| `CHAMVI_SCHEDULER` | In-process cron firing, disable for external CronJobs |
-| `CHAMVI_ENCRYPTION_KEYS` | Once the dashboard saves a connection (settings-only ones too), and with `whatsappModule()`: keyring for stored connection secrets and sessions, one value shared by every pod, kept in a secret |
-| `CHAMVI_AGENTS_DIR` | Optional folder agents beside the explicit entry |
-| `CHAMVI_AGENTS` | Optional comma-separated npm packages that export agents (installed in `dependencies`; the first start after a version bump cancels their unsettled runs) |
+| `MIGRATE` | Migrations run at startup by default when `DATABASE_URL` is set; `false` applies them only through `chamvi migrate` |
+| `PUBLIC_URL` | Public origin, without the app base path |
+| `BASE_PATH` | Shared HTTP prefix, such as `/api` |
+| `SCHEDULER` | In-process cron firing, disable for external CronJobs |
+| `ENCRYPTION_KEYS` | Once the dashboard saves a connection (settings-only ones too), and with `whatsappModule()`: keyring for stored connection secrets and sessions, one value shared by every pod, kept in a secret |
+| `AGENTS_DIR` | Optional folder agents beside the explicit entry |
+| `AGENTS` | Optional comma-separated npm packages that export agents (installed in `dependencies`; the first start after a version bump cancels their unsettled runs) |
 
 Use the [complete environment reference](https://chamvi.dev/reference/app#environment) for limits and optional authentication/features. Never commit real Secret contents. Use SOPS or External Secrets in a fleet repository.
 
@@ -30,7 +30,7 @@ For origin `https://agents.example.com` and base path `/api`, UI approvals live 
 
 ## Scheduling and Shutdown
 
-Use one scheduling strategy: the running app's cron channel or chart `cronJobs` (the chart then sets `CHAMVI_SCHEDULER=false` on the service). The example job is `chamvi run-job example 'cron:0 8 * * 1'`; agent and subscription id are positional CLI arguments. Keep the id a single argument. Jobs and the service must share durable storage.
+Use one scheduling strategy: the running app's cron channel or chart `cronJobs` (the chart then sets `SCHEDULER=false` on the service). The example job is `chamvi run-job example 'cron:0 8 * * 1'`; agent and subscription id are positional CLI arguments. Keep the id a single argument. Jobs and the service must share durable storage.
 
 Coordinate the pod termination grace period with readiness delay, engine drain, server close and CLI force-exit settings. On SIGTERM, readiness fails, intake/schedules stop, executions drain, then storage closes. `test/unit/cli.spec.ts` (the CLI) and `scripts/image-smoke.sh` (the image, through tini) verify exit 0 on SIGTERM; the drain inside a pod's grace period and restart recovery need a cluster (the README's "Try it on kind" steps).
 
@@ -105,12 +105,12 @@ saved results keep old checkpoint bytes, pending/future loads use the new snapsh
 change folder revisions; finish/cancel unsettled runs before an upgrade if mixed-version disclosure is unacceptable.
 Tracked agent extras retain existing revision cancellation behavior.
 
-The Flux source is `oci://ghcr.io/chamvi/helm/agent-app` (`>=0.1.0 <0.2.0`). Rename app/release identifiers, namespace, image, image-policy markers and the kind values' Secret name consistently; `test/unit/deploy.spec.ts` derives every expected name from the manifests, so a consistent rename passes. The release sets only keys of the chart's `values.yaml`; the chart owns `PORT`, `CHAMVI_BASE_PATH` (its `basePath` value) and, with `cronJobs`, `CHAMVI_SCHEDULER=false`. Main-branch tags are selected by their numeric timestamp, release tags by semver. Image automation belongs in the fleet repository.
+The Flux source is `oci://ghcr.io/chamvi/helm/agent-app` (`>=0.1.0 <0.2.0`). Rename app/release identifiers, namespace, image, image-policy markers and the kind values' Secret name consistently; `test/unit/deploy.spec.ts` derives every expected name from the manifests, so a consistent rename passes. The release sets only keys of the chart's `values.yaml`; the chart owns `PORT`, `BASE_PATH` (its `basePath` value) and, with `cronJobs`, `SCHEDULER=false`. Main-branch tags are selected by their numeric timestamp, release tags by semver. Image automation belongs in the fleet repository.
 
 New GHCR images are private by default. A private image needs credentials for both Flux scanning (`ImageRepository.spec.secretRef`) and pod pulls (`imagePullSecrets`). The `ghcr.io/chamvi/*` images and the chart need no pull secrets.
 
 Before enabling Kubernetes sandboxes, add the provider package, least-privilege RBAC and tested network policy. Workspace isolation alone does not prevent reaching cluster services or cloud metadata. Workspace pods run as root with a writable root filesystem by default (so `apt` and toolchain installs work), which needs a sandbox namespace labelled for Pod Security `baseline`; the provider's `user` and `readOnlyRoot` options restore a `restricted`-compatible pod.
 
-The workspace of a run waiting longer than `CHAMVI_SANDBOX_SUSPEND_AFTER_MS` (default 30 min) is suspended. On Kubernetes the pod is only deleted and rebuilt on resume with the chart's `sandbox.persistence.enabled` (it sets `CHAMVI_SANDBOX_PERSISTENCE`, `CHAMVI_SANDBOX_STORAGE_CLASS` and the claim permissions); without it pods stay up as before. Suspension loses background jobs and `/tmp`. Turning persistence off later leaves the claims behind.
+The workspace of a run waiting longer than `SANDBOX_SUSPEND_AFTER_MS` (default 30 min) is suspended. On Kubernetes the pod is only deleted and rebuilt on resume with the chart's `sandbox.persistence.enabled` (it sets `SANDBOX_PERSISTENCE`, `SANDBOX_STORAGE_CLASS` and the claim permissions); without it pods stay up as before. Suspension loses background jobs and `/tmp`. Turning persistence off later leaves the claims behind.
 
 Replace the placeholder release image tag before the first deployment (image automation rewrites it afterwards) and create the Secret separately.

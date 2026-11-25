@@ -60,7 +60,7 @@ it('uses current Flux APIs and consistent image policy names', () => {
         'serviceMonitor',
         'resources',
     ].includes(key))).toEqual([]);
-    expect(release.spec.values.env.CHAMVI_PUBLIC_URL).toBe(new URL(release.spec.values.env.CHAMVI_PUBLIC_URL).origin);
+    expect(release.spec.values.env.PUBLIC_URL).toBe(new URL(release.spec.values.env.PUBLIC_URL).origin);
     checkPullSecrets(release, automation);
     expect(docs('kustomization')[0].resources).toEqual(['namespace.yaml', 'chart.yaml', 'release.yaml']);
     expect(docs('secret.example')[0].stringData).not.toHaveProperty('RESUME_SECRET');
@@ -115,7 +115,7 @@ it.each([
 });
 
 it('ships a Secret example whose tokens the config reader accepts', () => {
-    const { CHAMVI_TOKENS } = docs('secret.example')[0].stringData;
-    const config = readConfig({ CHAMVI_TOKENS }, { mode: 'start', dev: true });
+    const { TOKENS } = docs('secret.example')[0].stringData;
+    const config = readConfig({ TOKENS }, { mode: 'start', dev: true });
     expect(config.tokens).toEqual([expect.objectContaining({ id: 'owner', permissions: '*' })]);
 });

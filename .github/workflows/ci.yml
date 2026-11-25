@@ -37,8 +37,8 @@ jobs:
             - run: node node_modules/@chamvi/cli/dist/cli.mjs start --check
               env:
                   ANTHROPIC_API_KEY: ci-placeholder-not-a-real-key
-                  CHAMVI_SCHEDULER: 'false'
-                  CHAMVI_TOKENS: '[{"value":"ci-placeholder-token-0001","id":"ci","permissions":[]}]'
+                  SCHEDULER: 'false'
+                  TOKENS: '[{"value":"ci-placeholder-token-0001","id":"ci","permissions":[]}]'
 
     workflows:
         name: Lint workflows and scripts

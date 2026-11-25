@@ -17,9 +17,9 @@ spec:
         # Private application image only:
         # imagePullSecrets: [{ name: registry }]
         secrets: [agent-template-env]
-        # The chart sets PORT and CHAMVI_BASE_PATH (from its basePath value) itself.
+        # The chart sets PORT and BASE_PATH (from its basePath value) itself.
         env:
-            CHAMVI_PUBLIC_URL: https://agents.example.com
+            PUBLIC_URL: https://agents.example.com
         ingress:
             enabled: false
             className: ''
@@ -27,7 +27,7 @@ spec:
             tls:
                 secretName: ''
         # Fire cron subscriptions as Kubernetes CronJobs instead of in the app
-        # (the chart then sets CHAMVI_SCHEDULER=false on the Deployment):
+        # (the chart then sets SCHEDULER=false on the Deployment):
         # A failed job's error is readable afterwards only with DATABASE_URL in the Secret.
         # cronJobs:
         #     - name: example-weekly
